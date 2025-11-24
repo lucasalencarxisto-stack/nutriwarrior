@@ -1,4 +1,4 @@
-package com.lucas.nutriwarrior;
+package com.lucas.nutriwarrior.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,13 +15,13 @@ import org.springframework.test.web.servlet.MockMvc;
 class HealthControllerTest {
 
     @Autowired
-    MockMvc mvc;
+    private MockMvc mvc;
 
     @Test
     void shouldReturnUp() throws Exception {
         mvc.perform(get("/health"))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.status").value("UP"))
-          .andExpect(jsonPath("$.app").value("nutriwarrior"));
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.status").value("UP"))
+               .andExpect(jsonPath("$.app").value("nutriwarrior"));
     }
 }
