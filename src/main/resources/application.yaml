@@ -1,5 +1,13 @@
+<<<<<<< HEAD
 server: 
   port: 8080
   spring:
     application:
       name: nutriwarrior
+=======
+server:
+  port: 8080
+spring:
+  application:
+    name: nutriwarrior
+>>>>>>> 4e7af82 (Backend estruturado e pronto pra receber seu futuro layout)
