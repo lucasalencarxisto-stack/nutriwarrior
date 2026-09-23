@@ -4,9 +4,9 @@ import com.lucas.nutriwarrior.model.dto.ClienteResponse;
 import com.lucas.nutriwarrior.model.dto.NovoClienteRequest;
 import com.lucas.nutriwarrior.model.entity.Cliente;
 import com.lucas.nutriwarrior.repository.ClienteRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
 
 import java.util.List;
 
@@ -36,12 +36,30 @@ public class ClienteService {
     }
 
     public ClienteResponse buscarPorId(Long id) {
-        Cliente cliente = clienteRepository.findById(id)
+        return ClienteResponse.fromEntity(buscarEntity(id));
+    }
+
+    public ClienteResponse atualizar(Long id, NovoClienteRequest request) {
+        Cliente cliente = buscarEntity(id);
+
+        cliente.nome = request.nome;
+        cliente.pesoAtualKg = request.pesoAtualKg;
+
+        Cliente atualizado = clienteRepository.save(cliente);
+
+        return ClienteResponse.fromEntity(atualizado);
+    }
+
+    public void deletar(Long id) {
+        Cliente cliente = buscarEntity(id);
+        clienteRepository.delete(cliente);
+    }
+
+    private Cliente buscarEntity(Long id) {
+        return clienteRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND,
-                "Cliente não encontrado com id=" + id
+                "Cliente nao encontrado com id=" + id
             ));
-
-        return ClienteResponse.fromEntity(cliente);
     }
 }

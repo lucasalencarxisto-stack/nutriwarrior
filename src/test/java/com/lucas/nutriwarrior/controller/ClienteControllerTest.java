@@ -41,7 +41,7 @@ class ClienteControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body)
             )
-            .andExpect(status().isOk())
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("$.nome").value("Lucas"))
             .andExpect(jsonPath("$.pesoAtualKg").value(76.5))
             .andExpect(jsonPath("$.id").isNumber())
