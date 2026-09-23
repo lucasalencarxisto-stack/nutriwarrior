@@ -1,0 +1,8 @@
+CREATE TABLE food_item (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    calories DOUBLE PRECISION,
+    protein DOUBLE PRECISION,
+    carbs DOUBLE PRECISION,
+    fat DOUBLE PRECISION
+);
