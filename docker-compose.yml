@@ -1,0 +1,16 @@
+services:
+	db:
+		image: postgres:16-alpine
+		container_name: nutriwarrior-postgres
+		restart: unless-stopped
+		environment:
+			POSTGRES_DB: ${POSTGRES_DB:-nutriwarrior}
+			POSTGRES_USER: ${POSTGRES_USER:-nutriwarrior}
+			POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nutriwarrior_dev}
+		ports:
+			- "5432:5432"
+		volumes:
+			- nutriwarrior-postgres-data:/var/lib/postgresql/data
+
+volumes:
+	nutriwarrior-postgres-data:

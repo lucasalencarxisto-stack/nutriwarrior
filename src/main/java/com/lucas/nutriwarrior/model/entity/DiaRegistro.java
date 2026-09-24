@@ -15,4 +15,10 @@ public class DiaRegistro {
 
     @Column(nullable = false)
     public LocalDate data;
+
+    @Column(name = "peso_kg", precision = 6, scale = 2)
+    public java.math.BigDecimal pesoKg;
+
+    @Column(name = "agua_ml")
+    public Integer aguaMl;
 }

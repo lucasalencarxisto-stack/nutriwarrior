@@ -60,4 +60,14 @@ public class DiaRegistroController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{data}")
+    public DiaRegistroResponse atualizar(
+            @PathVariable Long clienteId,
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate data,
+            @Valid @RequestBody DiaRegistroRequest request) {
+        request.data = data;
+        return service.atualizar(clienteId, data, request);
+    }
 }

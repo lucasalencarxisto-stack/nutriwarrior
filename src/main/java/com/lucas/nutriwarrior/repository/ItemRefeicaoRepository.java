@@ -17,4 +17,6 @@ public interface ItemRefeicaoRepository
         Long id,
         Long refeicaoId
     );
+
+    List<ItemRefeicao> findAllByRefeicao_DiaRegistro_Id(Long diaRegistroId);
 }

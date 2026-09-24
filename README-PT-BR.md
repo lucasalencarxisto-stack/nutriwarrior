@@ -107,6 +107,27 @@ Commits no padrão Conventional Commits
 
 - Testes acompanhando novas features
 
+Core API MVP implementada
+
+- CRUD de clientes, alimentos, dias, refeições e itens de refeição.
+- Cálculo nutricional por quantidade, com snapshot no item consumido.
+- Resumo diário em `GET /clientes/{clienteId}/dias/{data}/resumo`.
+- Peso e água no dia por `POST` ou `PUT /clientes/{clienteId}/dias/{data}`.
+- Metas em `GET` e `PUT /clientes/{clienteId}/metas`.
+- Erros padronizados em JSON por `@RestControllerAdvice`.
+- Swagger UI em `/swagger-ui.html` e OpenAPI em `/v3/api-docs`.
+
+Para usar PostgreSQL localmente:
+
+```bash
+docker compose up -d db
+DB_URL=jdbc:postgresql://localhost:5432/nutriwarrior \
+DB_USERNAME=nutriwarrior DB_PASSWORD=nutriwarrior_dev \
+./gradlew bootRun --args='--spring.profiles.active=prod'
+```
+
+No Windows PowerShell, use `$env:DB_URL`, `$env:DB_USERNAME` e `$env:DB_PASSWORD` antes de executar `gradlew.bat bootRun`. O desenvolvimento padrão continua usando H2.
+
 Licença
 
 MIT

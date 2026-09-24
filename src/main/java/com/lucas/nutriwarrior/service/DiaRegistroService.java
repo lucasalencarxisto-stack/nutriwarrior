@@ -46,6 +46,7 @@ public class DiaRegistroService {
         DiaRegistro dia = new DiaRegistro();
         dia.cliente = cliente;
         dia.data = request.data;
+        aplicarMetricas(dia, request);
 
         return DiaRegistroResponse.fromEntity(
             diaRepository.save(dia)
@@ -76,6 +77,18 @@ public class DiaRegistroService {
         diaRepository.delete(
             buscarDia(clienteId, data)
         );
+    }
+
+    public DiaRegistroResponse atualizar(Long clienteId, LocalDate data,
+            DiaRegistroRequest request) {
+        DiaRegistro dia = buscarDia(clienteId, data);
+        aplicarMetricas(dia, request);
+        return DiaRegistroResponse.fromEntity(diaRepository.save(dia));
+    }
+
+    private void aplicarMetricas(DiaRegistro dia, DiaRegistroRequest request) {
+        dia.pesoKg = request.pesoKg;
+        dia.aguaMl = request.aguaMl;
     }
 
     private Cliente buscarCliente(Long clienteId) {
