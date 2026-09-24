@@ -130,4 +130,12 @@ No Windows PowerShell, use `$env:DB_URL`, `$env:DB_USERNAME` e `$env:DB_PASSWORD
 
 Licença
 
+Segurança e identidade
+
+O Core API agora usa usuários separados do perfil `Cliente`. Nutricionistas são registrados em `POST /auth/register/nutricionista`, autenticam em `POST /auth/login` e consultam o usuário atual em `GET /me`. Pacientes são criados por `POST /nutricionistas/me/pacientes`.
+
+Todos os endpoints de negócio exigem Bearer JWT. O paciente só acessa o próprio cliente e o nutricionista só acessa pacientes vinculados a ele. A escrita de FoodItem é exclusiva de nutricionistas; pacientes têm acesso somente à leitura.
+
+Em desenvolvimento, `app.jwt.secret` usa um valor explícito para testes locais. Em produção, defina obrigatoriamente `JWT_SECRET` e, opcionalmente, `JWT_EXPIRATION_MINUTES`.
+
 MIT

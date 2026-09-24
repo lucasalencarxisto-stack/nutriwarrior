@@ -14,4 +14,12 @@ public class Cliente {
     public String nome;
 
     public Double pesoAtualKg;
+
+    @OneToOne
+    @JoinColumn(name = "usuario_id")
+    public Usuario usuario;
+
+    @ManyToOne
+    @JoinColumn(name = "nutricionista_id")
+    public Usuario nutricionista;
 }

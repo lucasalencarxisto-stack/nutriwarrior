@@ -14,19 +14,24 @@ import org.springframework.web.server.ResponseStatusException;
 public class MetaNutricionalService {
     private final MetaNutricionalRepository repository;
     private final ClienteRepository clienteRepository;
+    private final ClienteAccessService accessService;
 
     public MetaNutricionalService(MetaNutricionalRepository repository,
-            ClienteRepository clienteRepository) {
+            ClienteRepository clienteRepository,
+            ClienteAccessService accessService) {
         this.repository = repository;
         this.clienteRepository = clienteRepository;
+        this.accessService = accessService;
     }
 
     public MetaNutricionalResponse buscar(Long clienteId) {
+        accessService.exigirAcesso(clienteId);
         return MetaNutricionalResponse.fromEntity(buscarMeta(clienteId));
     }
 
     public MetaNutricionalResponse salvar(Long clienteId,
             MetaNutricionalRequest request) {
+        accessService.exigirAcesso(clienteId);
         Cliente cliente = clienteRepository.findById(clienteId)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Cliente nao encontrado com id=" + clienteId));

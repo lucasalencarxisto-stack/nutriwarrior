@@ -22,16 +22,20 @@ public class ResumoNutricionalService {
     private final DiaRegistroRepository diaRepository;
     private final ItemRefeicaoRepository itemRepository;
     private final MetaNutricionalRepository metaRepository;
+    private final ClienteAccessService accessService;
 
     public ResumoNutricionalService(DiaRegistroRepository diaRepository,
             ItemRefeicaoRepository itemRepository,
-            MetaNutricionalRepository metaRepository) {
+            MetaNutricionalRepository metaRepository,
+            ClienteAccessService accessService) {
         this.diaRepository = diaRepository;
         this.itemRepository = itemRepository;
         this.metaRepository = metaRepository;
+        this.accessService = accessService;
     }
 
     public ResumoNutricionalResponse buscar(Long clienteId, LocalDate data) {
+        accessService.exigirAcesso(clienteId);
         DiaRegistro dia = diaRepository.findByCliente_IdAndData(clienteId, data)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                 "Registro diario nao encontrado"));

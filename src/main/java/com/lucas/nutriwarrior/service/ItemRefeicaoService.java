@@ -29,17 +29,20 @@ public class ItemRefeicaoService {
     private final RefeicaoRepository refeicaoRepository;
     private final DiaRegistroRepository diaRepository;
     private final FoodItemRepository foodRepository;
+    private final ClienteAccessService accessService;
 
     public ItemRefeicaoService(
             ItemRefeicaoRepository itemRepository,
             RefeicaoRepository refeicaoRepository,
             DiaRegistroRepository diaRepository,
-            FoodItemRepository foodRepository) {
+            FoodItemRepository foodRepository,
+            ClienteAccessService accessService) {
 
         this.itemRepository = itemRepository;
         this.refeicaoRepository = refeicaoRepository;
         this.diaRepository = diaRepository;
         this.foodRepository = foodRepository;
+        this.accessService = accessService;
     }
 
     public ItemRefeicaoResponse criar(
@@ -189,6 +192,8 @@ public class ItemRefeicaoService {
             Long clienteId,
             LocalDate data,
             Long refeicaoId) {
+
+        accessService.exigirAcesso(clienteId);
 
         DiaRegistro dia = diaRepository
             .findByCliente_IdAndData(clienteId, data)

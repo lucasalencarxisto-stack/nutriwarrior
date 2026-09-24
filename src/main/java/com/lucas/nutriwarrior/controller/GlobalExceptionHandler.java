@@ -11,6 +11,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.Instant;
 
@@ -51,6 +52,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleConflict(
             DataIntegrityViolationException ex, HttpServletRequest request) {
         return response(HttpStatus.CONFLICT, "Conflito de dados", request);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiErrorResponse> handleAccessDenied(
+            AccessDeniedException ex, HttpServletRequest request) {
+        return response(HttpStatus.FORBIDDEN, "Access denied", request);
     }
 
     @ExceptionHandler(Exception.class)

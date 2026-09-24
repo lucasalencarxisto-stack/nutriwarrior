@@ -18,13 +18,16 @@ public class DiaRegistroService {
 
     private final DiaRegistroRepository diaRepository;
     private final ClienteRepository clienteRepository;
+    private final ClienteAccessService accessService;
 
     public DiaRegistroService(
             DiaRegistroRepository diaRepository,
-            ClienteRepository clienteRepository) {
+            ClienteRepository clienteRepository,
+            ClienteAccessService accessService) {
 
         this.diaRepository = diaRepository;
         this.clienteRepository = clienteRepository;
+        this.accessService = accessService;
     }
 
     public DiaRegistroResponse criar(
@@ -92,6 +95,7 @@ public class DiaRegistroService {
     }
 
     private Cliente buscarCliente(Long clienteId) {
+        accessService.exigirAcesso(clienteId);
         return clienteRepository.findById(clienteId)
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND,

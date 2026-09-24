@@ -18,13 +18,16 @@ public class RefeicaoService {
 
     private final RefeicaoRepository refeicaoRepository;
     private final DiaRegistroRepository diaRepository;
+    private final ClienteAccessService accessService;
 
     public RefeicaoService(
             RefeicaoRepository refeicaoRepository,
-            DiaRegistroRepository diaRepository) {
+            DiaRegistroRepository diaRepository,
+            ClienteAccessService accessService) {
 
         this.refeicaoRepository = refeicaoRepository;
         this.diaRepository = diaRepository;
+        this.accessService = accessService;
     }
 
     public RefeicaoResponse criar(
@@ -100,6 +103,8 @@ public class RefeicaoService {
     private DiaRegistro buscarDia(
             Long clienteId,
             LocalDate data) {
+
+        accessService.exigirAcesso(clienteId);
 
         return diaRepository
             .findByCliente_IdAndData(clienteId, data)

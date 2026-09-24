@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class FoodItemController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('NUTRICIONISTA')")
     public ResponseEntity<FoodItemResponse> criar(
             @Valid @RequestBody FoodItemRequest request) {
 
@@ -30,16 +32,19 @@ public class FoodItemController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('NUTRICIONISTA', 'PACIENTE')")
     public List<FoodItemResponse> listar() {
         return service.listarTodos();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('NUTRICIONISTA', 'PACIENTE')")
     public FoodItemResponse buscarPorId(@PathVariable Long id) {
         return service.buscarPorId(id);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('NUTRICIONISTA')")
     public FoodItemResponse atualizar(
             @PathVariable Long id,
             @Valid @RequestBody FoodItemRequest request) {
@@ -48,6 +53,7 @@ public class FoodItemController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('NUTRICIONISTA')")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.deletar(id);
 

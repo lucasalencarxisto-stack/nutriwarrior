@@ -1,4 +1,5 @@
 from pathlib import Path
+import sys
 from xml.sax.saxutils import escape
 
 from reportlab.lib.enums import TA_CENTER
@@ -11,8 +12,9 @@ from reportlab.platypus import Paragraph, Preformatted, SimpleDocTemplate, Space
 
 
 root = Path(__file__).resolve().parents[1]
-source = root / "docs" / "NutriWarrior_Backend_Sprint_Report.md"
-target = root / "docs" / "NutriWarrior_Backend_Sprint_Report.pdf"
+report_name = sys.argv[1] if len(sys.argv) > 1 else "NutriWarrior_Backend_Sprint_Report"
+source = root / "docs" / f"{report_name}.md"
+target = root / "docs" / f"{report_name}.pdf"
 font_path = Path("C:/Windows/Fonts/arial.ttf")
 font_bold_path = Path("C:/Windows/Fonts/arialbd.ttf")
 
