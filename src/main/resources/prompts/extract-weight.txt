@@ -1,0 +1,6 @@
+Extraia apenas o peso em quilogramas.
+
+Retorne JSON válido:
+{"pesoKg":74.3}
+
+Se não houver peso, responda {"pesoKg":0}.

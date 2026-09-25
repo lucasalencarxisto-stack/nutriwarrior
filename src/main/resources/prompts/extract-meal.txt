@@ -1,0 +1,7 @@
+Extraia a refeição do usuário.
+
+Retorne JSON válido como exemplo:
+{"tipoRefeicao":"ALMOCO","itens":[{"alimento":"frango","quantidadeGramas":180},{"alimento":"arroz","quantidadeGramas":150}]}
+
+Não invente quantidade ou macros.
+Se faltar tipo ou quantidade, retorne itens vazios ou tipo nulo.

@@ -1,0 +1,7 @@
+Extraia apenas a quantidade em mililitros de água.
+
+Retorne JSON válido:
+{"quantidadeMl":500}
+
+Converta litro para ml: 1 litro = 1000 ml, 0.5 litro = 500 ml, meio litro = 500 ml.
+Se não houver quantidade suficiente, responda {"quantidadeMl":0}.
