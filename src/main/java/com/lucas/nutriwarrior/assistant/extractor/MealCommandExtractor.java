@@ -2,6 +2,7 @@ package com.lucas.nutriwarrior.assistant.extractor;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.lucas.nutriwarrior.assistant.LlmClient;
+import com.lucas.nutriwarrior.assistant.InvalidLlmResponseException;
 import com.lucas.nutriwarrior.assistant.PromptLoader;
 import com.lucas.nutriwarrior.assistant.command.MealCommand;
 import com.lucas.nutriwarrior.model.entity.TipoRefeicao;
@@ -39,11 +40,12 @@ public class MealCommandExtractor {
             );
             if (payload != null && payload.tipoRefeicao() != null && payload.itens() != null && !payload.itens().isEmpty()) {
                 List<MealCommand.Item> items = payload.itens().stream()
-                    .map(item -> new MealCommand.Item(item.alimento(), item.quantidadeGramas()))
+                    .map(item -> item == null ? new MealCommand.Item(null, null)
+                        : new MealCommand.Item(item.alimento(), item.quantidadeGramas()))
                     .toList();
                 return new MealCommand(payload.tipoRefeicao(), items);
             }
-        } catch (Exception ignored) {
+        } catch (InvalidLlmResponseException ignored) {
             // Fallback below.
         }
 

@@ -12,7 +12,9 @@ public class PromptLoader {
     public String load(String name) {
         try {
             ClassPathResource resource = new ClassPathResource("prompts/" + name);
-            return new String(resource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            try (var input = resource.getInputStream()) {
+                return new String(input.readAllBytes(), StandardCharsets.UTF_8);
+            }
         } catch (IOException exception) {
             throw new IllegalStateException("Prompt nao encontrado: " + name, exception);
         }

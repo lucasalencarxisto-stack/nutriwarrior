@@ -27,6 +27,7 @@ dependencies {
 
     runtimeOnly("com.h2database:h2") //bancos em memórias para testar
     runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

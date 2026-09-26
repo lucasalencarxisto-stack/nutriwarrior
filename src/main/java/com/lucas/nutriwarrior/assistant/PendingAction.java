@@ -15,6 +15,9 @@ public record PendingAction(
     boolean consumed
 ) {
     public PendingAction {
+        payload = payload.entrySet().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(
+            Map.Entry::getKey, entry -> entry.getValue() instanceof java.util.List<?> list
+                ? java.util.List.copyOf(list) : entry.getValue()));
         if (id == null || id.isBlank()) {
             id = UUID.randomUUID().toString();
         }
@@ -27,7 +30,7 @@ public record PendingAction(
     }
 
     public boolean expired() {
-        return Instant.now().isAfter(expiresAt);
+        return !Instant.now().isBefore(expiresAt);
     }
 
     public PendingAction consumedCopy() {

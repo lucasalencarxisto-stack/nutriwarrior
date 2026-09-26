@@ -7,7 +7,6 @@ import com.lucas.nutriwarrior.assistant.extractor.MealCommandExtractor;
 import com.lucas.nutriwarrior.assistant.extractor.WaterCommandExtractor;
 import com.lucas.nutriwarrior.assistant.extractor.WeightCommandExtractor;
 import com.lucas.nutriwarrior.model.FoodItem;
-import com.lucas.nutriwarrior.model.dto.DiaRegistroRequest;
 import com.lucas.nutriwarrior.model.dto.RefeicaoRequest;
 import com.lucas.nutriwarrior.model.dto.ItemRefeicaoRequest;
 import com.lucas.nutriwarrior.model.dto.ResumoNutricionalResponse;
@@ -25,6 +24,7 @@ import com.lucas.nutriwarrior.service.RefeicaoService;
 import com.lucas.nutriwarrior.service.ResumoNutricionalService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -159,7 +159,7 @@ public class AssistantService {
             }
             case REGISTRAR_REFEICAO -> {
                 MealCommand command = mealExtractor.extract(message);
-                if (!command.isValid() || command.itens().stream().noneMatch(MealCommand.Item::isValid)) {
+                if (!command.isValid()) {
                     return new AssistantChatResponse(
                         "Qual foi a quantidade de arroz e de frango?",
                         AssistantIntent.CLARIFY,
@@ -264,6 +264,7 @@ public class AssistantService {
         }
     }
 
+    @Transactional
     public AssistantChatExecuteResponse execute(String confirmationId, Usuario usuario) {
         PendingAction action = pendingActionStore.require(confirmationId);
         if (!Objects.equals(action.userId(), usuario.id)) {
@@ -345,7 +346,11 @@ public class AssistantService {
                 novo.pesoKg = null;
                 return diaRegistroRepository.save(novo);
             });
-        dia.aguaMl = (dia.aguaMl == null ? 0 : dia.aguaMl) + quantidadeMl;
+        try {
+            dia.aguaMl = Math.addExact(dia.aguaMl == null ? 0 : dia.aguaMl, quantidadeMl);
+        } catch (ArithmeticException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Quantidade de agua excede o limite suportado");
+        }
         diaRegistroRepository.save(dia);
     }
 

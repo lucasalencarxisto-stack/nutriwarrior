@@ -33,7 +33,7 @@ public class AssistantIntentClassifier {
             if (intent != null) {
                 return intent;
             }
-        } catch (Exception ignored) {
+        } catch (InvalidLlmResponseException ignored) {
             // Fall back to deterministic heuristics below.
         }
 

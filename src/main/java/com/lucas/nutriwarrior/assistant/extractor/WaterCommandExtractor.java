@@ -1,6 +1,7 @@
 package com.lucas.nutriwarrior.assistant.extractor;
 
 import com.lucas.nutriwarrior.assistant.LlmClient;
+import com.lucas.nutriwarrior.assistant.InvalidLlmResponseException;
 import com.lucas.nutriwarrior.assistant.PromptLoader;
 import com.lucas.nutriwarrior.assistant.command.WaterCommand;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -33,10 +34,10 @@ public class WaterCommandExtractor {
                 WaterJson.class,
                 "WaterExtraction"
             );
-            if (payload != null && payload.quantidadeMl() != null && payload.quantidadeMl() > 0) {
+            if (payload != null && payload.quantidadeMl() != null) {
                 return new WaterCommand(payload.quantidadeMl());
             }
-        } catch (Exception ignored) {
+        } catch (InvalidLlmResponseException ignored) {
             // Fallback to deterministic parsing below.
         }
 
@@ -45,23 +46,21 @@ public class WaterCommandExtractor {
 
     private int parseMililitros(String message) {
         String normalized = message.toLowerCase(Locale.ROOT).replace(',', '.');
-        if (normalized.contains("meio litro") || normalized.contains("0.5 litro") || normalized.contains("0,5 litro")) {
+        if (normalized.contains("meio litro")) {
             return 500;
         }
-        if (normalized.contains("1 litro") || normalized.contains("1.0 litro") || normalized.contains("1,0 litro")) {
-            return 1000;
-        }
 
-        Pattern pattern = Pattern.compile("(\\d+(?:\\.\\d+)?)\\s*(ml|l|litro|litros)");
+        Pattern pattern = Pattern.compile("(-?\\d+(?:\\.\\d+)?)\\s*(ml|l|litro|litros)");
         Matcher matcher = pattern.matcher(normalized);
         if (matcher.find()) {
             String value = matcher.group(1);
             String unit = matcher.group(2);
             double number = Double.parseDouble(value);
-            if (unit.equals("ml")) {
-                return (int) Math.round(number);
+            double milliliters = unit.equals("ml") ? number : number * 1000d;
+            if (!Double.isFinite(milliliters) || milliliters <= 0 || milliliters > Integer.MAX_VALUE) {
+                return 0;
             }
-            return (int) Math.round(number * 1000d);
+            return (int) Math.round(milliliters);
         }
 
         return 0;

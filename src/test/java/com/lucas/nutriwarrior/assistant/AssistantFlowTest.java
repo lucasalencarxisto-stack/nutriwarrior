@@ -9,7 +9,6 @@ import com.lucas.nutriwarrior.repository.ClienteRepository;
 import com.lucas.nutriwarrior.repository.DiaRegistroRepository;
 import com.lucas.nutriwarrior.repository.RefeicaoRepository;
 import com.lucas.nutriwarrior.repository.UsuarioRepository;
-import com.lucas.nutriwarrior.service.ClienteAccessService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,7 +39,7 @@ class AssistantFlowTest {
     private AssistantService assistantService;
 
     @Autowired
-    private ClienteAccessService accessService;
+    private PendingActionStore pendingActions;
 
     @Autowired
     private ClienteRepository clienteRepository;
@@ -92,6 +91,47 @@ class AssistantFlowTest {
         assertEquals(AssistantIntent.REGISTRAR_AGUA, result.intent());
         assertTrue(diaRegistroRepository.findByCliente_IdAndData(
             cliente.id, LocalDate.now(ZoneId.of("America/Sao_Paulo"))).isEmpty());
+    }
+
+    @Test
+    void executeRejectsAnotherUserAndRevalidatesPatientLink() {
+        Cliente owner = createPatientWithClient();
+        Cliente other = createPatientWithClient();
+        var pending = assistantService.chat("Bebi 500 ml", null, owner.usuario);
+        var forbidden = assertThrows(org.springframework.web.server.ResponseStatusException.class,
+            () -> assistantService.execute(pending.confirmationId(), other.usuario));
+        assertEquals(403, forbidden.getStatusCode().value());
+        assertFalse(pendingActions.require(pending.confirmationId()).consumed());
+        var mismatched = pendingActions.create(new PendingAction(null, owner.usuario.id, other.id,
+            AssistantIntent.REGISTRAR_AGUA, java.util.Map.of("quantidadeMl", 500), null, null, false));
+        assertEquals(403, assertThrows(org.springframework.web.server.ResponseStatusException.class,
+            () -> assistantService.execute(mismatched.id(), owner.usuario)).getStatusCode().value());
+        assertFalse(pendingActions.require(mismatched.id()).consumed());
+    }
+
+    @Test
+    void failedMealExecutionRollsBackMeal() {
+        Cliente owner = createPatientWithClient();
+        var pending = pendingActions.create(new PendingAction(null, owner.usuario.id, owner.id,
+            AssistantIntent.REGISTRAR_REFEICAO, java.util.Map.of(
+                "tipoRefeicao", com.lucas.nutriwarrior.model.entity.TipoRefeicao.ALMOCO,
+                "itens", java.util.List.of(new com.lucas.nutriwarrior.assistant.command.MealCommand.Item(
+                    "missing-food-" + UUID.randomUUID(), java.math.BigDecimal.TEN))), null, null, false));
+        var day = new com.lucas.nutriwarrior.model.entity.DiaRegistro();
+        day.cliente = owner;
+        day.data = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        day.aguaMl = 0;
+        diaRegistroRepository.save(day);
+        long mealsBefore = refeicaoRepository.count();
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken(owner.usuario.email, null, java.util.List.of()));
+        try {
+            assertThrows(org.springframework.web.server.ResponseStatusException.class,
+                () -> assistantService.execute(pending.id(), owner.usuario));
+            assertEquals(mealsBefore, refeicaoRepository.count());
+            assertTrue(diaRegistroRepository.findByCliente_IdAndData(owner.id,
+                LocalDate.now(ZoneId.of("America/Sao_Paulo"))).isPresent());
+        } finally { SecurityContextHolder.clearContext(); }
     }
 
     private Cliente createPatientWithClient() {

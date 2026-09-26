@@ -7,7 +7,8 @@ import java.util.List;
 
 public record MealCommand(TipoRefeicao tipoRefeicao, List<Item> itens) {
     public boolean isValid() {
-        return tipoRefeicao != null && itens != null && !itens.isEmpty();
+        return tipoRefeicao != null && itens != null && !itens.isEmpty()
+            && itens.stream().allMatch(item -> item != null && item.isValid());
     }
 
     public record Item(String alimento, BigDecimal quantidadeGramas) {

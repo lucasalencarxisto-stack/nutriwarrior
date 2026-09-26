@@ -25,6 +25,21 @@ class SecurityIntegrationTest {
     @Autowired private UsuarioRepository usuarioRepository;
 
     @Test
+    void assistantEndpointsRequireAuthenticationAndAreDocumentedWithBearerJwt() throws Exception {
+        for (String endpoint : java.util.List.of("/assistant/chat", "/assistant/execute")) {
+            mvc.perform(post(endpoint).contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isUnauthorized());
+        }
+        mvc.perform(get("/v3/api-docs"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.paths['/assistant/chat'].post").exists())
+            .andExpect(jsonPath("$.paths['/assistant/execute'].post").exists())
+            .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.scheme").value("bearer"))
+            .andExpect(jsonPath("$.components.securitySchemes.bearerAuth.bearerFormat").value("JWT"))
+            .andExpect(jsonPath("$.security[0].bearerAuth").isArray());
+    }
+
+    @Test
     void shouldRegisterLoginExposeMeAndRejectAnonymousAccess() throws Exception {
         registrar("Ana", "ana.security@example.com");
         var usuario = usuarioRepository.findByEmail("ana.security@example.com").orElseThrow();

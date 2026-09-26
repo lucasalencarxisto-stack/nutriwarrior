@@ -2,6 +2,7 @@ package com.lucas.nutriwarrior.assistant.extractor;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.lucas.nutriwarrior.assistant.LlmClient;
+import com.lucas.nutriwarrior.assistant.InvalidLlmResponseException;
 import com.lucas.nutriwarrior.assistant.PromptLoader;
 import com.lucas.nutriwarrior.assistant.command.WeightCommand;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,7 @@ public class WeightCommandExtractor {
             if (payload != null && payload.pesoKg() != null) {
                 return new WeightCommand(payload.pesoKg());
             }
-        } catch (Exception ignored) {
+        } catch (InvalidLlmResponseException ignored) {
             // Fallback below.
         }
 
@@ -42,7 +43,7 @@ public class WeightCommandExtractor {
 
     private BigDecimal parsePeso(String message) {
         String normalized = message.toLowerCase(Locale.ROOT).replace(',', '.');
-        Pattern pattern = Pattern.compile("(\\d+(?:\\.\\d+)?)\\s*(kg|quilograma|quilogramas)");
+        Pattern pattern = Pattern.compile("(-?\\d+(?:\\.\\d+)?)\\s*(kg|quilograma|quilogramas)");
         Matcher matcher = pattern.matcher(normalized);
         if (matcher.find()) {
             return new BigDecimal(matcher.group(1));

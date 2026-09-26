@@ -8,8 +8,6 @@ import com.lucas.nutriwarrior.assistant.AssistantService;
 import com.lucas.nutriwarrior.model.entity.Usuario;
 import com.lucas.nutriwarrior.service.ClienteAccessService;
 import jakarta.validation.Valid;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,16 +24,14 @@ public class AssistantController {
 
     @PostMapping("/chat")
     public AssistantChatResponse chat(
-            @Valid @RequestBody AssistantChatRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @Valid @RequestBody AssistantChatRequest request) {
         Usuario usuario = accessService.usuarioAtual();
         return assistantService.chat(request.message, request.clienteId, usuario);
     }
 
     @PostMapping("/execute")
     public AssistantChatExecuteResponse execute(
-            @Valid @RequestBody AssistantChatExecuteRequest request,
-            @AuthenticationPrincipal Jwt jwt) {
+            @Valid @RequestBody AssistantChatExecuteRequest request) {
         Usuario usuario = accessService.usuarioAtual();
         return assistantService.execute(request.confirmationId(), usuario);
     }
