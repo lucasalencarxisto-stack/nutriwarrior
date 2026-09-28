@@ -5,9 +5,15 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 @Entity
-@Table(name = "usuario", uniqueConstraints = @UniqueConstraint(
-    name = "uk_usuario_email", columnNames = "email"))
+@Table(
+    name = "usuario",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_usuario_email",
+        columnNames = "email"
+    )
+)
 public class Usuario {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
@@ -17,6 +23,9 @@ public class Usuario {
 
     @Column(nullable = false, unique = true)
     public String email;
+
+    @Column
+    public String telefone;
 
     @Column(name = "senha_hash", nullable = false)
     public String senhaHash;

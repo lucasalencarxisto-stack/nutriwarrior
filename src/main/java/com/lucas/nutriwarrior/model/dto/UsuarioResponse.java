@@ -6,6 +6,7 @@ public class UsuarioResponse {
     public Long id;
     public String nome;
     public String email;
+    public String telefone;
     public String role;
     public Long clienteId;
 
@@ -14,6 +15,7 @@ public class UsuarioResponse {
         response.id = usuario.id;
         response.nome = usuario.nome;
         response.email = usuario.email;
+        response.telefone = usuario.telefone;
         response.role = usuario.role.name();
         response.clienteId = clienteId;
         return response;
