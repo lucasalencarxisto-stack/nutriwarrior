@@ -33,6 +33,16 @@ export async function createPatient(
   )
 }
 
+export async function updatePatient(
+  clienteId: number,
+  patient: Partial<NewPatientRequest>,
+): Promise<Patient> {
+  return apiFetch(`/nutricionistas/me/pacientes/${clienteId}`, {
+    method: "PATCH",
+    body: JSON.stringify(patient),
+  })
+}
+
   export async function deletePatient(
     clienteId: number,
   ) {

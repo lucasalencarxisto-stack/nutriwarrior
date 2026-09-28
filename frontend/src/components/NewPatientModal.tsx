@@ -3,6 +3,7 @@ import {
   EyeOff,
   LoaderCircle,
   Phone,
+  Pencil,
   UserPlus,
   X,
 } from "lucide-react"
@@ -11,6 +12,8 @@ import { useState } from "react"
 
 import {
   createPatient,
+  updatePatient,
+  type Patient,
 } from "../services/patients"
 
 
@@ -18,13 +21,16 @@ type NewPatientModalProps = {
   open: boolean
   onClose: () => void
   onCreated: () => void
+  patient?: Patient
 }
 
 
 function formatPhone(value: string) {
-  const digits = value
-    .replace(/\D/g, "")
-    .slice(0, 11)
+  let digits = value.replace(/\D/g, "")
+  if (digits.startsWith("55") && digits.length > 11) {
+    digits = digits.slice(2)
+  }
+  digits = digits.slice(0, 11)
 
   if (digits.length <= 2) {
     return digits
@@ -46,10 +52,12 @@ export function NewPatientModal({
   open,
   onClose,
   onCreated,
+  patient,
 }: NewPatientModalProps) {
-  const [nome, setNome] = useState("")
-  const [email, setEmail] = useState("")
-  const [telefone, setTelefone] = useState("")
+  const editing = patient !== undefined
+  const [nome, setNome] = useState(patient?.nome ?? "")
+  const [email, setEmail] = useState(patient?.email ?? "")
+  const [telefone, setTelefone] = useState(formatPhone(patient?.telefone ?? ""))
   const [senha, setSenha] = useState("")
 
   const [showPassword, setShowPassword] =
@@ -122,9 +130,9 @@ export function NewPatientModal({
       return
     }
 
-    if (senha.length < 8) {
+    if ((!editing || senha.length > 0) && (senha.length < 8 || !senha.trim())) {
       setError(
-        "A senha inicial deve ter pelo menos 8 caracteres.",
+        "A senha deve ter pelo menos 8 caracteres e não pode conter apenas espaços.",
       )
       return
     }
@@ -133,13 +141,24 @@ export function NewPatientModal({
     try {
       setLoading(true)
 
-      await createPatient({
-        nome: cleanName,
-        email: cleanEmail,
-        telefone:
-          cleanPhone || undefined,
-        senha,
-      })
+      if (editing) {
+        if (!patient.clienteId) {
+          throw new Error("Paciente sem vínculo de cliente para editar.")
+        }
+        await updatePatient(patient.clienteId, {
+          nome: cleanName,
+          email: cleanEmail,
+          telefone: cleanPhone,
+          ...(senha ? { senha } : {}),
+        })
+      } else {
+        await createPatient({
+          nome: cleanName,
+          email: cleanEmail,
+          telefone: cleanPhone || undefined,
+          senha,
+        })
+      }
 
       resetForm()
 
@@ -150,7 +169,7 @@ export function NewPatientModal({
       setError(
         err instanceof Error
           ? err.message
-          : "Não foi possível cadastrar o paciente.",
+          : "Não foi possível salvar o paciente.",
       )
     } finally {
       setLoading(false)
@@ -168,18 +187,19 @@ export function NewPatientModal({
           <div className="flex items-start gap-4">
 
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-[var(--nw-green)]">
-              <UserPlus size={20} />
+              {editing ? <Pencil size={20} /> : <UserPlus size={20} />}
             </div>
 
             <div>
 
               <h2 className="text-xl font-semibold tracking-tight">
-                Novo paciente
+                {editing ? "Editar paciente" : "Novo paciente"}
               </h2>
 
               <p className="mt-1 text-sm leading-5 text-neutral-500">
-                Cadastre um paciente e vincule-o
-                automaticamente à sua carteira.
+                {editing
+                  ? "Atualize os dados de cadastro do paciente."
+                  : "Cadastre um paciente e vincule-o automaticamente à sua carteira."}
               </p>
 
             </div>
@@ -313,7 +333,7 @@ export function NewPatientModal({
               htmlFor="patient-password"
               className="text-sm font-medium text-neutral-700"
             >
-              Senha inicial
+              {editing ? "Nova senha (opcional)" : "Senha inicial"}
             </label>
 
 
@@ -368,8 +388,9 @@ export function NewPatientModal({
 
 
             <p className="mt-2 text-xs leading-5 text-neutral-400">
-              O paciente utilizará este e-mail e
-              esta senha para acessar o NutriWarrior.
+              {editing
+                ? "Deixe a senha em branco para manter a atual."
+                : "O paciente utilizará este e-mail e esta senha para acessar o NutriWarrior."}
             </p>
 
           </div>
@@ -412,12 +433,12 @@ export function NewPatientModal({
                     size={17}
                     className="animate-spin"
                   />
-                  Cadastrando...
+                  {editing ? "Salvando..." : "Cadastrando..."}
                 </>
               ) : (
                 <>
-                  <UserPlus size={17} />
-                  Cadastrar paciente
+                  {editing ? <Pencil size={17} /> : <UserPlus size={17} />}
+                  {editing ? "Salvar alterações" : "Cadastrar paciente"}
                 </>
               )}
 

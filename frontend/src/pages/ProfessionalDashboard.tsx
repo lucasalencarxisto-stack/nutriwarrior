@@ -11,6 +11,7 @@ import {
     ClipboardList,
     LayoutDashboard,
     LogOut,
+    Pencil,
     Search,
     Settings,
     TrendingUp,
@@ -161,6 +162,8 @@ function getWhatsAppLink(phone: string) {
 export function ProfessionalDashboard() {
     const [newPatientModalOpen, setNewPatientModalOpen] =
         useState(false)
+
+    const [patientToEdit, setPatientToEdit] = useState<Patient | null>(null)
 
     const [user, setUser] =
         useState<ProfessionalUser | null>(null)
@@ -738,10 +741,12 @@ export function ProfessionalDashboard() {
                                                                     <button
                                                                         type="button"
                                                                         className="rounded-xl p-2 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-950"
-                                                                        aria-label={`Abrir ${patient.nome}`}
-                                                                        title="Abrir paciente"
+                                                                        onClick={() => setPatientToEdit(patient)}
+                                                                        disabled={!patient.clienteId}
+                                                                        aria-label={`Editar ${patient.nome}`}
+                                                                        title="Editar paciente"
                                                                     >
-                                                                        <ChevronRight size={18} />
+                                                                        <Pencil size={18} />
                                                                     </button>
 
                                                                     <button
@@ -914,13 +919,16 @@ export function ProfessionalDashboard() {
 
             </main>
 
-            <NewPatientModal
-                open={newPatientModalOpen}
-                onClose={() =>
+            {(newPatientModalOpen || patientToEdit !== null) && <NewPatientModal
+                key={patientToEdit?.clienteId ?? "new"}
+                open
+                patient={patientToEdit ?? undefined}
+                onClose={() => {
                     setNewPatientModalOpen(false)
-                }
+                    setPatientToEdit(null)
+                }}
                 onCreated={loadPatients}
-            />
+            />}
 
             <DeletePatientModal
                 open={patientToDelete !== null}
