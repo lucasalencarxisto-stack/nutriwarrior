@@ -2,6 +2,7 @@ import {
   Eye,
   EyeOff,
   LoaderCircle,
+  Phone,
   UserPlus,
   X,
 } from "lucide-react"
@@ -20,6 +21,27 @@ type NewPatientModalProps = {
 }
 
 
+function formatPhone(value: string) {
+  const digits = value
+    .replace(/\D/g, "")
+    .slice(0, 11)
+
+  if (digits.length <= 2) {
+    return digits
+  }
+
+  if (digits.length <= 7) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+  }
+
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`
+  }
+
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+}
+
+
 export function NewPatientModal({
   open,
   onClose,
@@ -27,7 +49,9 @@ export function NewPatientModal({
 }: NewPatientModalProps) {
   const [nome, setNome] = useState("")
   const [email, setEmail] = useState("")
+  const [telefone, setTelefone] = useState("")
   const [senha, setSenha] = useState("")
+
   const [showPassword, setShowPassword] =
     useState(false)
 
@@ -46,6 +70,7 @@ export function NewPatientModal({
   function resetForm() {
     setNome("")
     setEmail("")
+    setTelefone("")
     setSenha("")
     setShowPassword(false)
     setError(null)
@@ -63,16 +88,25 @@ export function NewPatientModal({
 
 
   async function handleSubmit(
-    event: { preventDefault: () => void },
+    event: {
+      preventDefault: () => void
+    },
   ) {
     event.preventDefault()
 
     setError(null)
 
-    const cleanName = nome.trim()
-    const cleanEmail = email
-      .trim()
-      .toLowerCase()
+    const cleanName =
+      nome.trim()
+
+    const cleanEmail =
+      email
+        .trim()
+        .toLowerCase()
+
+    const cleanPhone =
+      telefone.trim()
+
 
     if (!cleanName) {
       setError(
@@ -95,12 +129,15 @@ export function NewPatientModal({
       return
     }
 
+
     try {
       setLoading(true)
 
       await createPatient({
         nome: cleanName,
         email: cleanEmail,
+        telefone:
+          cleanPhone || undefined,
         senha,
       })
 
@@ -108,6 +145,7 @@ export function NewPatientModal({
 
       onCreated()
       onClose()
+
     } catch (err) {
       setError(
         err instanceof Error
@@ -134,6 +172,7 @@ export function NewPatientModal({
             </div>
 
             <div>
+
               <h2 className="text-xl font-semibold tracking-tight">
                 Novo paciente
               </h2>
@@ -142,6 +181,7 @@ export function NewPatientModal({
                 Cadastre um paciente e vincule-o
                 automaticamente à sua carteira.
               </p>
+
             </div>
 
           </div>
@@ -180,7 +220,9 @@ export function NewPatientModal({
               autoComplete="name"
               value={nome}
               onChange={(event) =>
-                setNome(event.target.value)
+                setNome(
+                  event.target.value,
+                )
               }
               placeholder="Ex.: João da Silva"
               disabled={loading}
@@ -205,12 +247,62 @@ export function NewPatientModal({
               autoComplete="email"
               value={email}
               onChange={(event) =>
-                setEmail(event.target.value)
+                setEmail(
+                  event.target.value,
+                )
               }
               placeholder="paciente@email.com"
               disabled={loading}
               className="mt-2 h-12 w-full rounded-2xl border border-neutral-200 bg-white px-4 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100 disabled:bg-neutral-50"
             />
+
+          </div>
+
+
+          <div className="mt-5">
+
+            <label
+              htmlFor="patient-phone"
+              className="text-sm font-medium text-neutral-700"
+            >
+              Telefone
+              <span className="ml-2 font-normal text-neutral-400">
+                opcional
+              </span>
+            </label>
+
+
+            <div className="relative mt-2">
+
+              <Phone
+                size={17}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400"
+              />
+
+              <input
+                id="patient-phone"
+                type="tel"
+                autoComplete="tel"
+                value={telefone}
+                onChange={(event) =>
+                  setTelefone(
+                    formatPhone(
+                      event.target.value,
+                    ),
+                  )
+                }
+                placeholder="(13) 99999-9999"
+                disabled={loading}
+                className="h-12 w-full rounded-2xl border border-neutral-200 bg-white pl-11 pr-4 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100 disabled:bg-neutral-50"
+              />
+
+            </div>
+
+
+            <p className="mt-2 text-xs leading-5 text-neutral-400">
+              Quando informado, o telefone poderá ser usado
+              para contato direto pelo WhatsApp.
+            </p>
 
           </div>
 
@@ -237,7 +329,9 @@ export function NewPatientModal({
                 autoComplete="new-password"
                 value={senha}
                 onChange={(event) =>
-                  setSenha(event.target.value)
+                  setSenha(
+                    event.target.value,
+                  )
                 }
                 placeholder="Mínimo de 8 caracteres"
                 disabled={loading}
@@ -249,7 +343,8 @@ export function NewPatientModal({
                 type="button"
                 onClick={() =>
                   setShowPassword(
-                    (current) => !current,
+                    (current) =>
+                      !current,
                   )
                 }
                 disabled={loading}
@@ -260,11 +355,13 @@ export function NewPatientModal({
                     : "Mostrar senha"
                 }
               >
+
                 {showPassword ? (
                   <EyeOff size={18} />
                 ) : (
                   <Eye size={18} />
                 )}
+
               </button>
 
             </div>

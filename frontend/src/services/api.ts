@@ -1,32 +1,68 @@
-const API_URL = import.meta.env.VITE_API_URL
+const API_URL =
+  import.meta.env.VITE_API_URL
 
 export async function apiFetch(
   path: string,
   options: RequestInit = {},
 ) {
-  const token = localStorage.getItem("nw_access_token")
+  const token =
+    localStorage.getItem(
+      "nw_access_token",
+    )
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token
-        ? { Authorization: `Bearer ${token}` }
-        : {}),
-      ...options.headers,
-    },
-  })
+  const response =
+    await fetch(
+      `${API_URL}${path}`,
+      {
+        ...options,
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          ...(token
+            ? {
+                Authorization:
+                  `Bearer ${token}`,
+              }
+            : {}),
+
+          ...options.headers,
+        },
+      },
+    )
+
+
+  const contentType =
+    response.headers.get(
+      "content-type",
+    ) ?? ""
+
+  const hasJson =
+    contentType.includes(
+      "application/json",
+    )
+
+
+  let data = null
+
+  if (
+    response.status !== 204 &&
+    hasJson
+  ) {
+    data =
+      await response
+        .json()
+        .catch(() => null)
+  }
+
 
   if (!response.ok) {
-    const error = await response
-      .json()
-      .catch(() => null)
-
     throw new Error(
-      error?.message ??
+      data?.message ??
         `Erro ${response.status}`,
     )
   }
 
-  return response.json()
+
+  return data
 }
