@@ -15,6 +15,11 @@ type Metric =
   | "peso"
   | "hidratacao"
 
+type Period =
+  | 7
+  | 30
+  | 90
+
 
 function formatNumber(
   value: number,
@@ -50,6 +55,27 @@ export function PatientEvolutionPreview({
   const [metric, setMetric] =
     useState<Metric>("peso")
 
+  const [period, setPeriod] =
+    useState<Period>(30)
+
+  const [
+    selectedPointData,
+    setSelectedPointData,
+  ] =
+    useState<string | null>(null)
+
+  const [
+    hoveredPointData,
+    setHoveredPointData,
+  ] =
+    useState<string | null>(null)
+
+
+  function resetPointSelection() {
+    setSelectedPointData(null)
+    setHoveredPointData(null)
+  }
+
 
   const weightRecords =
     records
@@ -79,10 +105,55 @@ export function PatientEvolutionPreview({
       )
 
 
-  const activeRecords =
+  const allMetricRecords =
     metric === "peso"
       ? weightRecords
       : hydrationRecords
+
+
+  const latestDate =
+    allMetricRecords.length > 0
+      ? new Date(
+          `${allMetricRecords[
+            allMetricRecords.length - 1
+          ].data}T12:00:00`,
+        )
+      : null
+
+
+  const periodStart =
+    latestDate
+      ? new Date(latestDate)
+      : null
+
+
+  if (periodStart) {
+    periodStart.setDate(
+      periodStart.getDate() -
+        (period - 1),
+    )
+  }
+
+
+  const activeRecords =
+    allMetricRecords.filter(
+      (record) => {
+
+        if (!periodStart) {
+          return false
+        }
+
+        const recordDate =
+          new Date(
+            `${record.data}T12:00:00`,
+          )
+
+        return (
+          recordDate >=
+          periodStart
+        )
+      },
+    )
 
 
   const isWeight =
@@ -193,7 +264,12 @@ export function PatientEvolutionPreview({
 
 
   const scaleMin =
-    minValue - padding
+    isWeight
+      ? minValue - padding
+      : Math.max(
+          0,
+          minValue - padding,
+        )
 
 
   const scaleMax =
@@ -267,6 +343,52 @@ export function PatientEvolutionPreview({
         }
       },
     )
+
+
+  const activePointData =
+    hoveredPointData ??
+    selectedPointData
+
+
+  const activePoint =
+    activePointData
+      ? points.find(
+          (point) =>
+            point.data ===
+            activePointData,
+        ) ?? null
+      : null
+
+
+  const tooltipWidth = 150
+  const tooltipHeight = 54
+
+
+  const tooltipX =
+    activePoint
+      ? Math.min(
+          Math.max(
+            activePoint.x -
+              tooltipWidth / 2,
+            chartLeft,
+          ),
+          chartRight -
+            tooltipWidth,
+        )
+      : 0
+
+
+  const tooltipY =
+    activePoint
+      ? activePoint.y -
+            tooltipHeight -
+            14 <
+          chartTop
+        ? activePoint.y + 16
+        : activePoint.y -
+          tooltipHeight -
+          14
+      : 0
 
 
   const linePath =
@@ -377,17 +499,30 @@ export function PatientEvolutionPreview({
 
         <div className="flex items-center gap-2">
 
-          <span className="rounded-xl px-3 py-2 text-xs font-semibold text-neutral-400">
-            7D
-          </span>
+          {([7, 30, 90] as Period[]).map(
+            (days) => (
 
-          <span className="rounded-xl bg-neutral-950 px-3 py-2 text-xs font-semibold text-white">
-            30D
-          </span>
+              <button
+                key={days}
+                type="button"
+                aria-pressed={
+                  period === days
+                }
+                onClick={() => {
+                  setPeriod(days)
+                  resetPointSelection()
+                }}
+                className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                  period === days
+                    ? "bg-neutral-950 text-white"
+                    : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+                }`}
+              >
+                {days}D
+              </button>
 
-          <span className="rounded-xl px-3 py-2 text-xs font-semibold text-neutral-400">
-            90D
-          </span>
+            ),
+          )}
 
         </div>
 
@@ -402,9 +537,13 @@ export function PatientEvolutionPreview({
 
             <button
               type="button"
-              onClick={() =>
-                setMetric("peso")
+              aria-pressed={
+                metric === "peso"
               }
+              onClick={() => {
+                setMetric("peso")
+                resetPointSelection()
+              }}
               disabled={
                 weightRecords.length === 0
               }
@@ -424,11 +563,15 @@ export function PatientEvolutionPreview({
 
             <button
               type="button"
-              onClick={() =>
+              aria-pressed={
+                metric === "hidratacao"
+              }
+              onClick={() => {
                 setMetric(
                   "hidratacao",
                 )
-              }
+                resetPointSelection()
+              }}
               disabled={
                 hydrationRecords.length === 0
               }
@@ -446,13 +589,24 @@ export function PatientEvolutionPreview({
             </button>
 
 
-            <span className="rounded-xl bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-400">
+            <button
+              type="button"
+              disabled
+              title="Disponível em breve"
+              className="cursor-not-allowed rounded-xl bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-300"
+            >
               Calorias
-            </span>
+            </button>
 
-            <span className="rounded-xl bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-400">
+
+            <button
+              type="button"
+              disabled
+              title="Disponível em breve"
+              className="cursor-not-allowed rounded-xl bg-neutral-50 px-4 py-2 text-xs font-medium text-neutral-300"
+            >
               Macronutrientes
-            </span>
+            </button>
 
           </div>
 
@@ -499,6 +653,7 @@ export function PatientEvolutionPreview({
                   {isWeight ? (
                     <>
                       {variationArrow}{" "}
+
                       {formatNumber(
                         Math.abs(
                           variation,
@@ -555,6 +710,11 @@ export function PatientEvolutionPreview({
                 className="min-w-[700px] w-full"
                 role="img"
                 aria-label={`Evolução real de ${metricLabel.toLowerCase()} do paciente`}
+                onClick={() =>
+                  setSelectedPointData(
+                    null,
+                  )
+                }
               >
 
                 <defs>
@@ -666,25 +826,201 @@ export function PatientEvolutionPreview({
                 {points.map(
                   (point) => (
 
-                    <circle
+                    <g
                       key={
                         point.data
                       }
+                    >
+
+                      <circle
+                        cx={
+                          point.x
+                        }
+                        cy={
+                          point.y
+                        }
+                        r="6"
+                        fill="white"
+                        stroke={
+                          lineColor
+                        }
+                        strokeWidth="3"
+                        pointerEvents="none"
+                      />
+
+
+                      <circle
+                        cx={
+                          point.x
+                        }
+                        cy={
+                          point.y
+                        }
+                        r="20"
+                        fill="transparent"
+                        role="button"
+                        tabIndex={0}
+                        style={{
+                          cursor:
+                            "pointer",
+                        }}
+                        aria-label={`${formatDateLabel(
+                          point.data,
+                        )}: ${formatNumber(
+                          point.value,
+                          metric,
+                        )} ${unit}`}
+
+                        onPointerEnter={(
+                          event,
+                        ) => {
+                          if (
+                            event.pointerType ===
+                            "mouse"
+                          ) {
+                            setHoveredPointData(
+                              point.data,
+                            )
+                          }
+                        }}
+
+                        onPointerLeave={(
+                          event,
+                        ) => {
+                          if (
+                            event.pointerType ===
+                            "mouse"
+                          ) {
+                            setHoveredPointData(
+                              null,
+                            )
+                          }
+                        }}
+
+                        onFocus={() =>
+                          setSelectedPointData(
+                            point.data,
+                          )
+                        }
+
+                        onBlur={() =>
+                          setSelectedPointData(
+                            null,
+                          )
+                        }
+
+                        onClick={(
+                          event,
+                        ) => {
+                          event.stopPropagation()
+
+                          setSelectedPointData(
+                            (
+                              current,
+                            ) =>
+                              current ===
+                              point.data
+                                ? null
+                                : point.data,
+                          )
+                        }}
+                      />
+
+                    </g>
+
+                  ),
+                )}
+
+
+                {activePoint && (
+
+                  <g
+                    pointerEvents="none"
+                  >
+
+                    <line
+                      x1={
+                        activePoint.x
+                      }
+                      y1={
+                        activePoint.y
+                      }
+                      x2={
+                        activePoint.x
+                      }
+                      y2={
+                        chartBottom
+                      }
+                      stroke={
+                        lineColor
+                      }
+                      strokeWidth="1"
+                      strokeDasharray="4 4"
+                      opacity="0.35"
+                    />
+
+
+                    <circle
                       cx={
-                        point.x
+                        activePoint.x
                       }
                       cy={
-                        point.y
+                        activePoint.y
                       }
-                      r="6"
+                      r="9"
                       fill="white"
                       stroke={
                         lineColor
                       }
-                      strokeWidth="3"
+                      strokeWidth="4"
                     />
 
-                  ),
+
+                    <g
+                      transform={`translate(${tooltipX} ${tooltipY})`}
+                    >
+
+                      <rect
+                        width={
+                          tooltipWidth
+                        }
+                        height={
+                          tooltipHeight
+                        }
+                        rx="12"
+                        fill="#171717"
+                      />
+
+
+                      <text
+                        x="12"
+                        y="21"
+                        fontSize="11"
+                        fill="#a3a3a3"
+                      >
+                        {formatDateLabel(
+                          activePoint.data,
+                        )}
+                      </text>
+
+
+                      <text
+                        x="12"
+                        y="41"
+                        fontSize="14"
+                        fontWeight="600"
+                        fill="white"
+                      >
+                        {formatNumber(
+                          activePoint.value,
+                          metric,
+                        )} {unit}
+                      </text>
+
+                    </g>
+
+                  </g>
+
                 )}
 
 
