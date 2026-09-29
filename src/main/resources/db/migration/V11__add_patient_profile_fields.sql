@@ -1,0 +1,5 @@
+ALTER TABLE cliente
+ADD COLUMN altura_cm DOUBLE PRECISION;
+
+ALTER TABLE cliente
+ADD COLUMN data_nascimento DATE;

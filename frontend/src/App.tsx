@@ -13,6 +13,8 @@ import { PatientDashboard } from "./pages/PatientDashboard"
 
 import { ProfessionalDashboard } from "./pages/ProfessionalDashboard"
 
+import { PatientDetailsPage } from "./pages/PatientDetailsPage"
+
 function App() {
   return (
     <BrowserRouter>
@@ -47,6 +49,15 @@ function App() {
           element={
             <ProtectedRoute allowedRole="NUTRICIONISTA">
               <ProfessionalDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/professional/patients/:clienteId"
+          element={
+            <ProtectedRoute allowedRole="NUTRICIONISTA">
+              <PatientDetailsPage />
             </ProtectedRoute>
           }
         />

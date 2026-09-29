@@ -6,6 +6,8 @@ export type Patient = {
   email: string
   telefone?: string | null
   clienteId?: number | null
+  alturaCm?: number | null
+  dataNascimento?: string | null
 }
 
 export type NewPatientRequest = {
@@ -13,6 +15,8 @@ export type NewPatientRequest = {
   email: string
   senha: string
   telefone?: string
+  alturaCm?: number | null
+  dataNascimento?: string | null
 }
 
 export async function getMyPatients(): Promise<Patient[]> {
@@ -43,13 +47,21 @@ export async function updatePatient(
   })
 }
 
-  export async function deletePatient(
-    clienteId: number,
-  ) {
-    return apiFetch(
-      `/nutricionistas/me/pacientes/${clienteId}`,
-      {
-        method: "DELETE",
-      },
-    )
-  }
+export async function deletePatient(
+  clienteId: number,
+) {
+  return apiFetch(
+    `/nutricionistas/me/pacientes/${clienteId}`,
+    {
+      method: "DELETE",
+    },
+  )
+}
+
+export async function getPatientById(
+  clienteId: number,
+): Promise<Patient> {
+  return apiFetch(
+    `/nutricionistas/me/pacientes/${clienteId}`,
+  )
+}

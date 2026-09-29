@@ -53,16 +53,44 @@ public class PacienteService {
         Cliente cliente = new Cliente();
         cliente.nome = request.nome.trim();
         cliente.pesoAtualKg = request.pesoAtualKg;
+        cliente.alturaCm = request.alturaCm;
+        cliente.dataNascimento = request.dataNascimento;
         cliente.usuario = paciente;
         cliente.nutricionista = nutricionista;
         clienteRepository.save(cliente);
-        return UsuarioResponse.fromEntity(paciente, cliente.id);
+        return UsuarioResponse.fromPaciente(
+                paciente,
+                cliente);
     }
 
     public List<UsuarioResponse> listar() {
-        Usuario nutricionista = accessService.exigirRole(Role.NUTRICIONISTA);
-        return clienteRepository.findAllByNutricionista_IdOrderByIdAsc(nutricionista.id)
-                .stream().map(cliente -> UsuarioResponse.fromEntity(cliente.usuario, cliente.id)).toList();
+        Usuario nutricionista = accessService.exigirRole(
+                Role.NUTRICIONISTA);
+
+        return clienteRepository
+                .findAllByNutricionista_IdOrderByIdAsc(
+                        nutricionista.id)
+                .stream()
+                .map(cliente -> UsuarioResponse.fromPaciente(
+                        cliente.usuario,
+                        cliente))
+                .toList();
+    }
+
+    public UsuarioResponse buscar(Long clienteId) {
+        accessService.exigirRole(Role.NUTRICIONISTA);
+
+        Cliente cliente = accessService.exigirAcesso(clienteId);
+
+        if (cliente.usuario == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Usuario do paciente nao encontrado");
+        }
+
+        return UsuarioResponse.fromPaciente(
+                cliente.usuario,
+                cliente);
     }
 
     @Transactional
@@ -133,16 +161,29 @@ public class PacienteService {
                     request.senha);
         }
 
+       if (request.alturaCm != null) {
+    cliente.alturaCm = request.alturaCm;
+   
+    }
+
+        if (request.dataNascimento != null) {
+    cliente.dataNascimento = request.dataNascimento;
+}
+
         usuarioRepository.save(
-                paciente);
+            paciente
+        );
 
         clienteRepository.save(
-                cliente);
+             cliente
+        );
 
-        return UsuarioResponse.fromEntity(
-                paciente,
-                cliente.id);
-    }
+    return UsuarioResponse.fromPaciente(
+    paciente,
+    cliente
+    );
+
+  }
 
     @Transactional
     public void deletar(Long clienteId) {

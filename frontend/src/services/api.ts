@@ -10,6 +10,9 @@ export async function apiFetch(
       "nw_access_token",
     )
 
+  const isAuthRoute =
+    path.startsWith("/auth/")
+
   const response =
     await fetch(
       `${API_URL}${path}`,
@@ -19,12 +22,15 @@ export async function apiFetch(
           "Content-Type":
             "application/json",
 
-          ...(token
-            ? {
-                Authorization:
-                  `Bearer ${token}`,
-              }
-            : {}),
+          ...(
+            token &&
+            !isAuthRoute
+              ? {
+                  Authorization:
+                    `Bearer ${token}`,
+                }
+              : {}
+          ),
 
           ...options.headers,
         },

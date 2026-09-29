@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
+import java.time.LocalDate;
+
 public class NovoPacienteRequest {
 
     @NotBlank
@@ -23,4 +25,9 @@ public class NovoPacienteRequest {
 
     @Positive
     public Double pesoAtualKg;
+
+    @Positive
+    public Double alturaCm;
+
+    public LocalDate dataNascimento;
 }

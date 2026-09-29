@@ -40,6 +40,11 @@ public class PacienteController {
         return service.listar();
     }
 
+    @GetMapping("/{clienteId}")
+    public UsuarioResponse buscar(@PathVariable Long clienteId) {
+        return service.buscar(clienteId);
+    }
+
     @PatchMapping("/{clienteId}")
     public UsuarioResponse atualizar(
             @PathVariable Long clienteId,

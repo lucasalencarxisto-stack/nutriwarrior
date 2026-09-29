@@ -1,4 +1,5 @@
 import { NewPatientModal } from "../components/NewPatientModal"
+import { useNavigate } from "react-router-dom"
 import whatsappIcon from "../assets/whatsapp_icone.png"
 import { DeletePatientModal } from "../components/DeletePatientModal"
 
@@ -160,6 +161,8 @@ function getWhatsAppLink(phone: string) {
 }
 
 export function ProfessionalDashboard() {
+    const navigate = useNavigate()
+
     const [newPatientModalOpen, setNewPatientModalOpen] =
         useState(false)
 
@@ -737,6 +740,23 @@ export function ProfessionalDashboard() {
                                                             <td className="py-5 text-right">
 
                                                                 <div className="flex items-center justify-end gap-1">
+
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            if (patient.clienteId) {
+                                                                                navigate(
+                                                                                    `/professional/patients/${patient.clienteId}`,
+                                                                                )
+                                                                            }
+                                                                        }}
+                                                                        disabled={!patient.clienteId}
+                                                                        className="rounded-xl p-2 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-950 disabled:opacity-30"
+                                                                        aria-label={`Abrir ${patient.nome}`}
+                                                                        title="Abrir ficha do paciente"
+                                                                    >
+                                                                        <ChevronRight size={18} />
+                                                                    </button>
 
                                                                     <button
                                                                         type="button"

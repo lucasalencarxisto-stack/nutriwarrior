@@ -58,6 +58,8 @@ export function NewPatientModal({
   const [nome, setNome] = useState(patient?.nome ?? "")
   const [email, setEmail] = useState(patient?.email ?? "")
   const [telefone, setTelefone] = useState(formatPhone(patient?.telefone ?? ""))
+  const [alturaCm, setAlturaCm] = useState(patient?.alturaCm?.toString() ?? "")
+  const [dataNascimento, setDataNascimento] = useState(patient?.dataNascimento?.slice(0, 10) ?? "")
   const [senha, setSenha] = useState("")
 
   const [showPassword, setShowPassword] =
@@ -79,6 +81,8 @@ export function NewPatientModal({
     setNome("")
     setEmail("")
     setTelefone("")
+    setAlturaCm("")
+    setDataNascimento("")
     setSenha("")
     setShowPassword(false)
     setError(null)
@@ -137,6 +141,17 @@ export function NewPatientModal({
       return
     }
 
+    const alturaInformada = alturaCm.trim()
+      ? Number(alturaCm)
+      : undefined
+
+    if (alturaInformada !== undefined && (!Number.isFinite(alturaInformada) || alturaInformada <= 0)) {
+      setError("Informe uma altura válida em centímetros.")
+      return
+    }
+
+    const dataNascimentoInformada = dataNascimento.trim()
+
 
     try {
       setLoading(true)
@@ -149,6 +164,8 @@ export function NewPatientModal({
           nome: cleanName,
           email: cleanEmail,
           telefone: cleanPhone,
+          ...(alturaInformada !== undefined ? { alturaCm: alturaInformada } : {}),
+          ...(dataNascimentoInformada ? { dataNascimento: dataNascimentoInformada } : {}),
           ...(senha ? { senha } : {}),
         })
       } else {
@@ -157,6 +174,8 @@ export function NewPatientModal({
           email: cleanEmail,
           telefone: cleanPhone || undefined,
           senha,
+          ...(alturaInformada !== undefined ? { alturaCm: alturaInformada } : {}),
+          ...(dataNascimentoInformada ? { dataNascimento: dataNascimentoInformada } : {}),
         })
       }
 
@@ -180,7 +199,7 @@ export function NewPatientModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-[2px]">
 
-      <div className="w-full max-w-lg overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[28px] border border-neutral-200 bg-white shadow-2xl">
 
         <div className="flex items-start justify-between border-b border-neutral-100 px-7 py-6">
 
@@ -323,6 +342,51 @@ export function NewPatientModal({
               Quando informado, o telefone poderá ser usado
               para contato direto pelo WhatsApp.
             </p>
+
+          </div>
+
+
+          <div className="mt-5 grid gap-5 sm:grid-cols-2">
+
+            <div>
+              <label
+                htmlFor="patient-height"
+                className="text-sm font-medium text-neutral-700"
+              >
+                Altura (cm)
+              </label>
+
+              <input
+                id="patient-height"
+                type="number"
+                min="1"
+                step="any"
+                inputMode="decimal"
+                value={alturaCm}
+                onChange={(event) => setAlturaCm(event.target.value)}
+                placeholder="Ex.: 173"
+                disabled={loading}
+                className="mt-2 h-12 w-full rounded-2xl border border-neutral-200 bg-white px-4 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100 disabled:bg-neutral-50"
+              />
+            </div>
+
+            <div>
+              <label
+                htmlFor="patient-birth-date"
+                className="text-sm font-medium text-neutral-700"
+              >
+                Data de nascimento
+              </label>
+
+              <input
+                id="patient-birth-date"
+                type="date"
+                value={dataNascimento}
+                onChange={(event) => setDataNascimento(event.target.value)}
+                disabled={loading}
+                className="mt-2 h-12 w-full rounded-2xl border border-neutral-200 bg-white px-4 text-sm outline-none transition focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100 disabled:bg-neutral-50"
+              />
+            </div>
 
           </div>
 
