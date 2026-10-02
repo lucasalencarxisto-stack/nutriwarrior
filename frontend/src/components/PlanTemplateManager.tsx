@@ -177,6 +177,9 @@ export function PlanTemplateManager({
             <input
               value={name}
               onChange={event => setName(event.target.value)}
+              onKeyDown={event => {
+                if (event.key === "Enter") event.preventDefault()
+              }}
               maxLength={120}
               placeholder="Nome do modelo, ex.: Plano vegetariano base"
               className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm"
