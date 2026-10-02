@@ -12,12 +12,15 @@ const labels = {
 export function AgendaOverview() {
   const [rows, setRows] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadedAtMs, setLoadedAtMs] = useState<number | null>(null)
 
   useEffect(() => {
     let alive = true
     getAgenda()
       .then(items => {
-        if (alive) setRows(items)
+        if (!alive) return
+        setRows(items)
+        setLoadedAtMs(Date.now())
       })
       .catch(() => undefined)
       .finally(() => {
@@ -28,9 +31,11 @@ export function AgendaOverview() {
     }
   }, [])
 
+  const cutoffMs = loadedAtMs == null ? 0 : loadedAtMs - 86400000
+
   const upcoming = rows
     .filter(item => item.status !== "CANCELLED" && item.status !== "COMPLETED")
-    .filter(item => new Date(item.startsAt).getTime() >= Date.now() - 86400000)
+    .filter(item => new Date(item.startsAt).getTime() >= cutoffMs)
     .slice(0, 8)
 
   return (
