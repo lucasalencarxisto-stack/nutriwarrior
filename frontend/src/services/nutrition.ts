@@ -23,6 +23,10 @@ export type NutritionalGoals = {
   aguaMl:
     | number
     | null
+
+  pesoAlvoKg:
+    | number
+    | null
 }
 
 
@@ -88,6 +92,10 @@ export type NutritionSummary = {
     | null
 
   aguaRestanteMl:
+    | number
+    | null
+
+  pesoAlvoKg:
     | number
     | null
 }

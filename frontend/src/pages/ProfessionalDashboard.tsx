@@ -1,3 +1,4 @@
+import { FollowUpPanel } from "../components/FollowUpPanel"
 import { NewPatientModal } from "../components/NewPatientModal"
 import { useNavigate } from "react-router-dom"
 import whatsappIcon from "../assets/whatsapp_icone.png"
@@ -937,6 +938,7 @@ export function ProfessionalDashboard() {
 
                 </div>
 
+                <FollowUpPanel />
             </main>
 
             {(newPatientModalOpen || patientToEdit !== null) && <NewPatientModal

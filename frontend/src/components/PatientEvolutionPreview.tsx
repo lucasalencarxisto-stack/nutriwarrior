@@ -375,9 +375,6 @@ export function PatientEvolutionPreview({
   }
 
 
-
-
-
   function changeMetric(
 
     nextMetric:
@@ -535,6 +532,7 @@ export function PatientEvolutionPreview({
     ScalarPoint[] =
 
     summaries
+      .filter((summary) => summary.quantidadeItens > 0)
 
       .map(
 
@@ -591,6 +589,7 @@ export function PatientEvolutionPreview({
     MacroPoint[] =
 
     summaries
+      .filter((summary) => summary.quantidadeItens > 0)
 
       .map(
 
@@ -1176,37 +1175,28 @@ export function PatientEvolutionPreview({
 
       : 0
 
-
-
-
-
   const scalarGoal =
-
     selectedMetric ===
-
-      "hidratacao"
-
+      "peso"
       ? toNumber(
-
-        goals?.aguaMl,
-
+        goals?.pesoAlvoKg,
       )
-
       : selectedMetric ===
-
-        "calorias"
-
+        "hidratacao"
         ? toNumber(
-
-          goals?.calorias,
-
+          goals?.aguaMl,
         )
+        : selectedMetric ===
+          "calorias"
+          ? toNumber(
+            goals?.calorias,
+          )
+          : null
 
-        : null
-
-
-
-
+  const goalReached =
+    selectedMetric === "peso" &&
+    scalarGoal !== null &&
+    currentValue <= scalarGoal
 
   const proteinGoal =
 
@@ -1608,9 +1598,8 @@ export function PatientEvolutionPreview({
 
     )
 
-
-
-
+  const lastScalarPoint =
+    scalarPoints.at(-1) ?? null
 
   const macroPoints =
 
@@ -1931,7 +1920,10 @@ export function PatientEvolutionPreview({
       : null
 
 
-
+  const activePointReachedGoal =
+    goalReached &&
+    activeScalarPoint !== null &&
+    activeScalarPoint.data === lastScalarPoint?.data
 
 
   const activeMacroPoint =
@@ -2024,6 +2016,13 @@ export function PatientEvolutionPreview({
 
 
 
+  const activeTooltipHeight =
+    selectedMetric === "macronutrientes"
+      ? tooltipHeight
+      : activePointReachedGoal
+        ? 78
+        : tooltipHeight
+
   const tooltipX =
 
     activeX !== null
@@ -2064,7 +2063,7 @@ export function PatientEvolutionPreview({
 
       ? activeY -
 
-        tooltipHeight -
+        activeTooltipHeight -
 
         14 <
 
@@ -2080,7 +2079,7 @@ export function PatientEvolutionPreview({
 
         : activeY -
 
-        tooltipHeight -
+        activeTooltipHeight -
 
         14
 
@@ -2412,9 +2411,9 @@ export function PatientEvolutionPreview({
 
                 className={`rounded-xl px-3 py-2 text-xs font-semibold transition ${period === days
 
-                    ? "bg-neutral-950 text-white"
+                  ? "bg-neutral-950 text-white"
 
-                    : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+                  : "text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
 
                   }`}
 
@@ -2484,11 +2483,11 @@ export function PatientEvolutionPreview({
 
               className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${selectedMetric ===
 
-                  "peso"
+                "peso"
 
-                  ? "bg-emerald-50 text-emerald-700"
+                ? "bg-emerald-50 text-emerald-700"
 
-                  : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
+                : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
 
                 } ${!hasWeight
 
@@ -2538,11 +2537,11 @@ export function PatientEvolutionPreview({
 
               className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${selectedMetric ===
 
-                  "hidratacao"
+                "hidratacao"
 
-                  ? "bg-teal-50 text-teal-700"
+                ? "bg-teal-50 text-teal-700"
 
-                  : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
+                : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
 
                 } ${!hasHydration
 
@@ -2592,11 +2591,11 @@ export function PatientEvolutionPreview({
 
               className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${selectedMetric ===
 
-                  "calorias"
+                "calorias"
 
-                  ? "bg-amber-50 text-amber-700"
+                ? "bg-amber-50 text-amber-700"
 
-                  : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
+                : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
 
                 } ${!hasCalories
 
@@ -2646,11 +2645,11 @@ export function PatientEvolutionPreview({
 
               className={`rounded-xl px-4 py-2 text-xs font-semibold transition ${selectedMetric ===
 
-                  "macronutrientes"
+                "macronutrientes"
 
-                  ? "bg-neutral-950 text-white"
+                ? "bg-neutral-950 text-white"
 
-                  : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
+                : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
 
                 } ${!hasMacros
 
@@ -2670,17 +2669,11 @@ export function PatientEvolutionPreview({
 
           </div>
 
-
-
-
-
           {hasData &&
 
             selectedMetric !==
 
             "macronutrientes" && (
-
-
 
               <div className="flex items-end gap-8">
 
@@ -2783,129 +2776,70 @@ export function PatientEvolutionPreview({
             )}
 
 
-
-
-
           {hasData &&
-
             selectedMetric ===
-
             "macronutrientes" && (
-
-
 
               <div className="flex flex-wrap items-end gap-6 text-sm">
 
-
-
                 <div>
 
                   <p className="text-xs text-neutral-400">
-
                     Proteína
-
                   </p>
-
-
 
                   <p className="mt-1 font-semibold text-emerald-700">
-
                     {formatNumber(
-
                       averageProtein,
-
                       selectedMetric,
-
                     )} g
-
                   </p>
 
                 </div>
 
 
-
-
-
                 <div>
 
                   <p className="text-xs text-neutral-400">
-
                     Carboidrato
-
                   </p>
-
-
 
                   <p className="mt-1 font-semibold text-sky-700">
-
                     {formatNumber(
-
                       averageCarbs,
-
                       selectedMetric,
-
                     )} g
-
                   </p>
 
                 </div>
-
-
-
 
 
                 <div>
 
                   <p className="text-xs text-neutral-400">
-
                     Gordura
-
                   </p>
 
-
-
                   <p className="mt-1 font-semibold text-amber-700">
-
                     {formatNumber(
-
                       averageFat,
-
                       selectedMetric,
-
                     )} g
-
                   </p>
 
                 </div>
-
-
 
               </div>
 
-
-
             )}
-
-
 
         </div>
 
-
-
-
-
         {!hasData ? (
-
-
 
           <div className="mt-6 flex min-h-[250px] items-center justify-center rounded-2xl bg-neutral-50/60">
 
-
-
             <div className="text-center">
-
-
-
               <p className="font-semibold text-neutral-700">
 
                 Ainda não há dados de {metricLabel.toLowerCase()}
@@ -3116,23 +3050,11 @@ export function PatientEvolutionPreview({
 
                 )}
 
-
-
-
-
-                {selectedMetric !==
-
-                  "macronutrientes" &&
-
-                  scalarGoal !==
-
-                  null && (
-
+                {selectedMetric !== "macronutrientes" &&
+                  scalarGoal !== null && (
 
 
                     <g>
-
-
 
                       <line
 
@@ -3168,13 +3090,13 @@ export function PatientEvolutionPreview({
 
                         }
 
-                        stroke="#737373"
+                        stroke="#e69e5a"
 
-                        strokeDasharray="7 6"
+                        strokeDasharray="8 6"
 
-                        strokeWidth="2"
+                        strokeWidth="1.5"
 
-                        opacity="0.55"
+                        opacity="0.7"
 
                       />
 
@@ -3204,19 +3126,16 @@ export function PatientEvolutionPreview({
 
                         textAnchor="end"
 
-                        fontSize="11"
+                        fontSize="12"
 
-                        fill="#737373"
+                        fill="#ce671e"
+                        fontWeight="600"
 
                       >
-
-                        Meta {formatNumber(
-
+                        {`Meta ${formatNumber(
                           scalarGoal,
-
                           selectedMetric,
-
-                        )} {unit}
+                        )} ${unit}`}
 
                       </text>
 
@@ -3240,64 +3159,30 @@ export function PatientEvolutionPreview({
 
 
 
-                      {proteinGoal !==
-
-                        null && (
-
-
-
+                      {proteinGoal !== null && (
+                        <g>
                           <line
-
-                            x1={
-
-                              chartLeft
-
-                            }
-
-                            x2={
-
-                              chartRight
-
-                            }
-
-                            y1={
-
-                              getY(
-
-                                proteinGoal,
-
-                              )
-
-                            }
-
-                            y2={
-
-                              getY(
-
-                                proteinGoal,
-
-                              )
-
-                            }
-
-                            stroke={
-
-                              proteinColor
-
-                            }
-
+                            x1={chartLeft}
+                            x2={chartRight}
+                            y1={getY(proteinGoal)}
+                            y2={getY(proteinGoal)}
+                            stroke={proteinColor}
                             strokeDasharray="5 6"
-
-                            opacity="0.28"
-
+                            opacity="0.6"
                           />
 
-
-
-                        )}
-
-
-
+                          <text
+                            x={chartRight}
+                            y={getY(proteinGoal) - 7}
+                            textAnchor="end"
+                            fontSize="12"
+                            fontWeight="600"
+                            fill={proteinColor}
+                          >
+                            {`Meta proteína ${formatNumber(proteinGoal, selectedMetric)} g`}
+                          </text>
+                        </g>
+                      )}
 
 
                       {carbsGoal !==
@@ -3652,7 +3537,39 @@ export function PatientEvolutionPreview({
 
                   )}
 
+                {goalReached &&
+                  lastScalarPoint && (
+                    <g pointerEvents="none">
 
+                      <circle
+                        cx={lastScalarPoint.x}
+                        cy={lastScalarPoint.y}
+                        r="11"
+                        fill="#10b981"
+                        stroke="white"
+                        strokeWidth="3"
+                      />
+
+                      <path
+                        d={`
+          M ${lastScalarPoint.x - 5}
+            ${lastScalarPoint.y}
+
+          L ${lastScalarPoint.x - 1}
+            ${lastScalarPoint.y + 4}
+
+          L ${lastScalarPoint.x + 6}
+            ${lastScalarPoint.y - 5}
+        `}
+                        fill="none"
+                        stroke="white"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+
+                    </g>
+                  )}
 
 
 
@@ -4091,45 +4008,128 @@ export function PatientEvolutionPreview({
 
 
 
-                  <g
+                    <g
 
-                    pointerEvents="none"
+                      pointerEvents="none"
 
-                  >
-
-
-
-                    <circle
-
-                      cx={
-
-                        activeScalarPoint.x
-
-                      }
-
-                      cy={
-
-                        activeScalarPoint.y
-
-                      }
-
-                      r="9"
-
-                      fill="white"
-
-                      stroke={
-
-                        lineColor
-
-                      }
-
-                      strokeWidth="4"
-
-                    />
+                    >
 
 
 
+                      <circle
 
+                        cx={
+
+                          activeScalarPoint.x
+
+                        }
+
+                        cy={
+
+                          activeScalarPoint.y
+
+                        }
+
+                        r="9"
+
+                        fill="white"
+
+                        stroke={
+
+                          lineColor
+
+                        }
+
+                        strokeWidth="4"
+
+                      />
+
+
+
+
+
+                      <g
+
+                        transform={`translate(${tooltipX} ${tooltipY})`}
+
+                      >
+
+
+
+                        <rect
+
+                          width={
+
+                            tooltipWidth
+
+                          }
+
+                          height={
+
+                            activeTooltipHeight
+
+                          }
+
+                          rx="12"
+
+                          fill="#171717"
+
+                        />
+
+
+
+                        <text
+
+                          x="12"
+
+                          y="21"
+
+                          fontSize="11"
+
+                          fill="#a3a3a3"
+
+                        >
+
+                          {formatDateLabel(
+
+                            activeScalarPoint.data,
+
+                          )}
+
+                        </text>
+
+
+
+                        <text
+
+                          x="12"
+
+                          y="43"
+
+                          fontSize="14"
+
+                          fontWeight="600"
+
+                          fill="white"
+
+                        >
+
+                          {formatNumber(
+
+                            activeScalarPoint.value,
+
+                            selectedMetric,
+
+                          )} {unit}
+
+                          {activePointReachedGoal && "✅"}
+                        </text>
+                      </g>
+                    </g>
+                  )}
+
+                {selectedMetric === "macronutrientes" &&
+                  activeMacroPoint && (
 
                     <g
 
@@ -4137,21 +4137,11 @@ export function PatientEvolutionPreview({
 
                     >
 
-
-
                       <rect
 
-                        width={
+                        width={tooltipWidth}
 
-                          tooltipWidth
-
-                        }
-
-                        height={
-
-                          tooltipHeight
-
-                        }
+                        height={tooltipHeight}
 
                         rx="12"
 
@@ -4163,7 +4153,7 @@ export function PatientEvolutionPreview({
 
                       <text
 
-                        x="12"
+                        x="14"
 
                         y="21"
 
@@ -4175,7 +4165,7 @@ export function PatientEvolutionPreview({
 
                         {formatDateLabel(
 
-                          activeScalarPoint.data,
+                          activeMacroPoint.data,
 
                         )}
 
@@ -4183,330 +4173,246 @@ export function PatientEvolutionPreview({
 
 
 
+
+
                       <text
 
-                        x="12"
+                        x="14"
 
-                        y="43"
+                        y="45"
 
-                        fontSize="14"
+                        fontSize="11"
 
-                        fontWeight="600"
-
-                        fill="white"
+                        fill="#6ee7b7"
 
                       >
 
-                        {formatNumber(
-
-                          activeScalarPoint.value,
-
-                          selectedMetric,
-
-                        )} {unit}
+                        Proteína
 
                       </text>
 
 
 
+                      <text
+
+                        x={tooltipWidth - 14}
+
+                        y="45"
+
+                        textAnchor="end"
+
+                        fontSize="11"
+
+                        fontWeight="600"
+
+                        fill="#6ee7b7"
+
+                      >
+
+                        {formatNumber(
+
+                          activeMacroPoint.proteinas,
+
+                          selectedMetric,
+
+                        )}
+
+                      </text>
+
+
+
+
+
+                      <text
+
+                        x="14"
+
+                        y="66"
+
+                        fontSize="11"
+
+                        fill="#7dd3fc"
+
+                      >
+
+                        Carboidrato
+
+                      </text>
+
+
+
+                      <text
+
+                        x={tooltipWidth - 14}
+
+                        y="66"
+
+                        textAnchor="end"
+
+                        fontSize="11"
+
+                        fontWeight="600"
+
+                        fill="#7dd3fc"
+
+                      >
+
+                        {formatNumber(
+
+                          activeMacroPoint.carboidratos,
+
+                          selectedMetric,
+
+                        )}
+
+                      </text>
+
+
+
+
+
+                      <text
+
+                        x="14"
+
+                        y="87"
+
+                        fontSize="11"
+
+                        fill="#fcd34d"
+
+                      >
+
+                        Gordura
+
+                      </text>
+
+
+
+                      <text
+
+                        x={tooltipWidth - 14}
+
+                        y="87"
+
+                        textAnchor="end"
+
+                        fontSize="11"
+
+                        fontWeight="600"
+
+                        fill="#fcd34d"
+
+                      >
+
+                        {formatNumber(
+
+                          activeMacroPoint.gorduras,
+
+                          selectedMetric,
+
+                        )}
+
+                      </text>
+
                     </g>
 
 
 
-                  </g>
+                  )}
 
 
 
-                )}
 
 
 
+                {hitPoints.map(
 
+                  (
 
-                {selectedMetric === "macronutrientes" &&
-                  activeMacroPoint && (
+                    point,
 
-                  <g
+                    index,
 
-                    transform={`translate(${tooltipX} ${tooltipY})`}
+                  ) => {
 
-                  >
 
-                    <rect
 
-                      width={tooltipWidth}
+                    const showLabel =
 
-                      height={tooltipHeight}
+                      index %
 
-                      rx="12"
+                      labelEvery ===
 
-                      fill="#171717"
+                      0 ||
 
-                    />
+                      index ===
 
+                      hitPoints.length -
 
+                      1
 
-                    <text
 
-                      x="14"
 
-                      y="21"
 
-                      fontSize="11"
 
-                      fill="#a3a3a3"
+                    if (
 
-                    >
+                      !showLabel
 
-                      {formatDateLabel(
+                    ) {
 
-                        activeMacroPoint.data,
-
-                      )}
-
-                    </text>
-
-
-
-
-
-                    <text
-
-                      x="14"
-
-                      y="45"
-
-                      fontSize="11"
-
-                      fill="#6ee7b7"
-
-                    >
-
-                      Proteína
-
-                    </text>
-
-
-
-                    <text
-
-                      x={tooltipWidth - 14}
-
-                      y="45"
-
-                      textAnchor="end"
-
-                      fontSize="11"
-
-                      fontWeight="600"
-
-                      fill="#6ee7b7"
-
-                    >
-
-                      {formatNumber(
-
-                        activeMacroPoint.proteinas,
-
-                        selectedMetric,
-
-                      )} g
-
-                    </text>
-
-
-
-
-
-                    <text
-
-                      x="14"
-
-                      y="66"
-
-                      fontSize="11"
-
-                      fill="#7dd3fc"
-
-                    >
-
-                      Carboidrato
-
-                    </text>
-
-
-
-                    <text
-
-                      x={tooltipWidth - 14}
-
-                      y="66"
-
-                      textAnchor="end"
-
-                      fontSize="11"
-
-                      fontWeight="600"
-
-                      fill="#7dd3fc"
-
-                    >
-
-                      {formatNumber(
-
-                        activeMacroPoint.carboidratos,
-
-                        selectedMetric,
-
-                      )} g
-
-                    </text>
-
-
-
-
-
-                    <text
-
-                      x="14"
-
-                      y="87"
-
-                      fontSize="11"
-
-                      fill="#fcd34d"
-
-                    >
-
-                      Gordura
-
-                    </text>
-
-
-
-                    <text
-
-                      x={tooltipWidth - 14}
-
-                      y="87"
-
-                      textAnchor="end"
-
-                      fontSize="11"
-
-                      fontWeight="600"
-
-                      fill="#fcd34d"
-
-                    >
-
-                      {formatNumber(
-
-                        activeMacroPoint.gorduras,
-
-                        selectedMetric,
-
-                      )} g
-
-                    </text>
-
-                  </g>
-
-
-
-                )}
-
-
-
-
-
-            {hitPoints.map(
-
-              (
-
-                point,
-
-                index,
-
-              ) => {
-
-
-
-                const showLabel =
-
-                  index %
-
-                  labelEvery ===
-
-                  0 ||
-
-                  index ===
-
-                  hitPoints.length -
-
-                  1
-
-
-
-
-
-                if (
-
-                  !showLabel
-
-                ) {
-
-                  return null
-
-                }
-
-
-
-
-
-                return (
-
-
-
-                  <text
-
-                    key={`label-${point.data}`}
-
-                    x={
-
-                      point.x
+                      return null
 
                     }
 
-                    y="252"
-
-                    textAnchor="middle"
-
-                    fontSize="11"
-
-                    fill="#a3a3a3"
-
-                  >
-
-                    {formatDateLabel(
-
-                      point.data,
-
-                    )}
-
-                  </text>
 
 
 
-                )
 
-              },
-
-            )}
+                    return (
 
 
 
-          </svg>
+                      <text
+
+                        key={`label-${point.data}`}
+
+                        x={
+
+                          point.x
+
+                        }
+
+                        y="252"
+
+                        textAnchor="middle"
+
+                        fontSize="11"
+
+                        fill="#a3a3a3"
+
+                      >
+
+                        {formatDateLabel(
+
+                          point.data,
+
+                        )}
+
+                      </text>
+
+
+
+                    )
+
+                  },
+
+                )}
+
+
+
+              </svg>
 
 
 
@@ -4516,369 +4422,356 @@ export function PatientEvolutionPreview({
 
 
 
-      <div className="grid grid-cols-3 gap-3 xl:grid-cols-1">
+            <div className="grid grid-cols-3 gap-3 xl:grid-cols-1">
 
 
 
-        {selectedMetric ===
+              {selectedMetric ===
+                "peso" && (
+                  <>
 
-          "peso" && (
+                    {scalarGoal !== null && (
 
-            <>
+                      <InfoCard
+                        label="Peso alvo"
+                        value={`${formatNumber(
+                          scalarGoal,
+                          selectedMetric,
+                        )} kg`}
+                        accent
+                      />
 
+                    )}
 
 
-              <InfoCard
+                    <InfoCard
+                      label="Variação"
+                      value={
+                        formattedVariation
+                      }
+                    />
 
-                label="Variação"
 
-                value={
+                    <InfoCard
+                      label="Média"
+                      value={`${formatNumber(
+                        average,
+                        selectedMetric,
+                      )} kg`}
+                    />
 
-                  formattedVariation
 
-                }
+                    <InfoCard
+                      label="Registros"
+                      value={`${activeScalarData.length}`}
+                    />
 
-                accent
+                  </>
+                )}
 
-              />
 
 
 
-              <InfoCard
 
-                label="Média"
+              {selectedMetric ===
 
-                value={`${formatNumber(
+                "hidratacao" && (
 
-                  average,
+                  <>
 
-                  selectedMetric,
 
-                )} kg`}
 
-              />
+                    <InfoCard
 
+                      label={
 
+                        scalarGoal !==
 
-              <InfoCard
+                          null
 
-                label="Registros"
+                          ? "Meta"
 
-                value={`${activeScalarData.length}`}
+                          : "Máximo"
 
-              />
+                      }
 
+                      value={`${formatNumber(
 
+                        scalarGoal ??
 
-            </>
+                        maximum,
 
-          )}
+                        selectedMetric,
 
+                      )} ml`}
 
+                      accent
 
+                    />
 
 
-        {selectedMetric ===
 
-          "hidratacao" && (
+                    <InfoCard
 
-            <>
+                      label="Média"
 
+                      value={`${formatNumber(
 
+                        average,
 
-              <InfoCard
+                        selectedMetric,
 
-                label={
+                      )} ml`}
 
-                  scalarGoal !==
+                    />
 
-                    null
 
-                    ? "Meta"
 
-                    : "Máximo"
+                    <InfoCard
 
-                }
+                      label="Registros"
 
-                value={`${formatNumber(
+                      value={`${activeScalarData.length}`}
 
-                  scalarGoal ??
+                    />
 
-                  maximum,
 
-                  selectedMetric,
 
-                )} ml`}
+                  </>
 
-                accent
+                )}
 
-              />
 
 
 
-              <InfoCard
 
-                label="Média"
+              {selectedMetric ===
 
-                value={`${formatNumber(
+                "calorias" && (
 
-                  average,
+                  <>
 
-                  selectedMetric,
 
-                )} ml`}
 
-              />
+                    <InfoCard
 
+                      label={
 
+                        scalarGoal !==
 
-              <InfoCard
+                          null
 
-                label="Registros"
+                          ? "Meta diária"
 
-                value={`${activeScalarData.length}`}
+                          : "Máximo"
 
-              />
+                      }
 
+                      value={`${formatNumber(
 
+                        scalarGoal ??
 
-            </>
+                        maximum,
 
-          )}
+                        selectedMetric,
 
+                      )} kcal`}
 
+                      accent
 
+                    />
 
 
-        {selectedMetric ===
 
-          "calorias" && (
+                    <InfoCard
 
-            <>
+                      label="Média"
 
+                      value={`${formatNumber(
 
+                        average,
 
-              <InfoCard
+                        selectedMetric,
 
-                label={
+                      )} kcal`}
 
-                  scalarGoal !==
+                    />
 
-                    null
 
-                    ? "Meta diária"
 
-                    : "Máximo"
+                    <InfoCard
 
-                }
+                      label="Dias"
 
-                value={`${formatNumber(
+                      value={`${activeScalarData.length}`}
 
-                  scalarGoal ??
+                    />
 
-                  maximum,
 
-                  selectedMetric,
 
-                )} kcal`}
+                  </>
 
-                accent
+                )}
 
-              />
 
 
 
-              <InfoCard
 
-                label="Média"
+              {selectedMetric ===
 
-                value={`${formatNumber(
+                "macronutrientes" && (
 
-                  average,
+                  <>
 
-                  selectedMetric,
 
-                )} kcal`}
 
-              />
+                    <InfoCard
 
+                      label="Proteína média"
 
+                      value={`${formatNumber(
 
-              <InfoCard
+                        averageProtein,
 
-                label="Dias"
+                        selectedMetric,
 
-                value={`${activeScalarData.length}`}
+                      )} g`}
 
-              />
+                      accent
 
+                    />
 
 
-            </>
 
-          )}
+                    <InfoCard
 
+                      label="Carbo médio"
 
+                      value={`${formatNumber(
 
+                        averageCarbs,
 
+                        selectedMetric,
 
-        {selectedMetric ===
+                      )} g`}
 
-          "macronutrientes" && (
+                    />
 
-            <>
 
 
+                    <InfoCard
 
-              <InfoCard
+                      label="Gordura média"
 
-                label="Proteína média"
+                      value={`${formatNumber(
 
-                value={`${formatNumber(
+                        averageFat,
 
-                  averageProtein,
+                        selectedMetric,
 
-                  selectedMetric,
+                      )} g`}
 
-                )} g`}
+                    />
 
-                accent
 
-              />
 
+                    <InfoCard
 
+                      label="Dias"
 
-              <InfoCard
+                      value={`${activeMacroData.length}`}
 
-                label="Carbo médio"
+                    />
 
-                value={`${formatNumber(
 
-                  averageCarbs,
 
-                  selectedMetric,
+                  </>
 
-                )} g`}
+                )}
 
-              />
 
 
+            </div>
 
-              <InfoCard
 
-                label="Gordura média"
 
-                value={`${formatNumber(
+          </div>
 
-                  averageFat,
 
-                  selectedMetric,
 
-                )} g`}
+        )
 
-              />
+        }
 
 
 
-              <InfoCard
 
-                label="Dias"
 
-                value={`${activeMacroData.length}`}
+        {
 
-              />
+          showSummary &&
 
+          hasData &&
 
+          summaryText && (
 
-            </>
+            <div className="mt-5 rounded-[24px] bg-neutral-950 px-5 py-4 text-white">
 
-          )}
 
 
+              <div className="flex items-start gap-3">
 
-      </div>
 
 
+                <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
 
-    </div>
 
 
+                <div>
 
-  )
 
-}
 
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400">
 
+                    Resumo dos últimos {period} dias
 
+                  </p>
 
 
-{
 
-  showSummary &&
+                  <p className="mt-2 text-sm leading-6 text-neutral-200">
 
-  hasData &&
+                    {summaryText}
 
-  summaryText && (
+                  </p>
 
 
 
-    <div className="mt-5 rounded-[24px] bg-neutral-950 px-5 py-4 text-white">
+                </div>
 
 
 
-      <div className="flex items-start gap-3">
+              </div>
 
 
 
-        <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
+            </div>
 
 
 
-        <div>
+          )
 
+        }
 
 
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-400">
 
-            Resumo dos últimos {period} dias
 
-          </p>
 
+        <p className="mt-3 text-xs text-neutral-400">
 
+          Dados obtidos dos registros diários do paciente.
 
-          <p className="mt-2 text-sm leading-6 text-neutral-200">
-
-            {summaryText}
-
-          </p>
-
-
-
-        </div>
-
-
-
-      </div>
-
-
-
-    </div>
-
-
-
-  )
-
-}
-
-
-
-
-
-<p className="mt-3 text-xs text-neutral-400">
-
-  Dados obtidos dos registros diários do paciente.
-
-</p>
+        </p>
 
 
 
@@ -4938,9 +4831,9 @@ function InfoCard({
 
         className={`mt-1 text-base font-semibold ${accent
 
-            ? "text-teal-700"
+          ? "text-teal-700"
 
-            : "text-neutral-950"
+          : "text-neutral-950"
 
           }`}
 
