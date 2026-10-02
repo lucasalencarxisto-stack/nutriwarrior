@@ -1467,7 +1467,7 @@ export function PatientDetailsPage() {
 
 
 
-                <PatientSections clienteId={Number(clienteId)} summaries={summaries} key={clienteId} age={age} records={dayRecords} heightCm={patient.alturaCm} currentWeight={currentWeightKg} bmi={bodyMassIndex} targetWeight={goals?.pesoAlvoKg ?? null}>
+                <PatientSections clienteId={Number(clienteId)} summaries={summaries} key={clienteId} age={age} records={dayRecords} heightCm={patient.alturaCm} currentWeight={currentWeightKg} bmi={bodyMassIndex} targetWeight={goals?.pesoAlvoKg ?? null} patientName={patient.nome} initialTags={patient.tags ?? []}>
                 <section className="grid grid-cols-2 gap-4 xl:grid-cols-4">
 
 
