@@ -3,6 +3,7 @@ package com.lucas.nutriwarrior.controller;
 import com.lucas.nutriwarrior.model.dto.MealPlanDraftRequest;
 import com.lucas.nutriwarrior.service.MealPlanDraftService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,5 +36,13 @@ public class MealPlanDraftController {
             @Valid @RequestBody MealPlanDraftRequest request) {
 
         return service.salvar(clienteId, request);
+    }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void excluir(
+            @PathVariable("clienteId") Long clienteId) {
+
+        service.excluir(clienteId);
     }
 }

@@ -68,7 +68,6 @@ public class MealPlanDraftService {
         var author = access.exigirRole(Role.NUTRICIONISTA);
         var cliente = access.exigirAcesso(clienteId);
 
-        // Serializa as gravações deste paciente, inclusive a primeira.
         entityManager.lock(cliente, LockModeType.PESSIMISTIC_WRITE);
 
         var existing = repository.findByCliente_Id(clienteId);
@@ -102,6 +101,19 @@ public class MealPlanDraftService {
         draft.payload = serializeMeals(request.meals());
 
         return toView(repository.saveAndFlush(draft));
+    }
+
+    @Transactional
+    public void excluir(Long clienteId) {
+        access.exigirRole(Role.NUTRICIONISTA);
+        var cliente = access.exigirAcesso(clienteId);
+
+        entityManager.lock(cliente, LockModeType.PESSIMISTIC_WRITE);
+
+        repository.findByCliente_Id(clienteId)
+                .ifPresent(repository::delete);
+
+        repository.flush();
     }
 
     private String serializeMeals(

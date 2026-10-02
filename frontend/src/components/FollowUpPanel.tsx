@@ -1,14 +1,43 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { dateLabel, getFollowUps, today, type FollowUp } from "../services/care"
+
 export function FollowUpPanel() {
-  const [rows, setRows] = useState<FollowUp[]>([]), [error, setError] = useState(""), [loading, setLoading] = useState(true), [revision, setRevision] = useState(0)
-  useEffect(() => { let alive = true; setLoading(true); getFollowUps().then(data => { if (alive) { setRows(data); setError("") } }).catch(e => { if (alive) setError(e.message) }).finally(() => { if (alive) setLoading(false) }); return () => { alive = false } }, [revision])
+  const [rows, setRows] = useState<FollowUp[]>([])
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [revision, setRevision] = useState(0)
+
+  useEffect(() => {
+    let alive = true
+
+    getFollowUps()
+      .then(data => {
+        if (!alive) return
+        setRows(data)
+        setError("")
+      })
+      .catch(cause => {
+        if (alive) {
+          setError(
+            cause instanceof Error
+              ? cause.message
+              : "Não foi possível carregar os retornos.",
+          )
+        }
+      })
+      .finally(() => {
+        if (alive) setLoading(false)
+      })
+
+    return () => {
+      alive = false
+    }
+  }, [revision])
 
   const currentDate = today()
-
   const sortedRows = [...rows].sort((a, b) =>
-    a.returnDate.localeCompare(b.returnDate)
+    a.returnDate.localeCompare(b.returnDate),
   )
 
   const groups = [
@@ -22,23 +51,24 @@ export function FollowUpPanel() {
     },
     {
       title: "Datas passadas",
-      items: sortedRows
-        .filter(row => row.returnDate < currentDate)
-        .reverse(),
+      items: sortedRows.filter(row => row.returnDate < currentDate).reverse(),
     },
   ]
+
+  function refresh() {
+    setLoading(true)
+    setError("")
+    setRevision(value => value + 1)
+  }
 
   return (
     <section className="mx-6 my-6 rounded-3xl border border-neutral-200 bg-white p-5 lg:mx-10">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-semibold">
-          Acompanhamento · retornos previstos
-        </h2>
-
+        <h2 className="font-semibold">Acompanhamento · retornos previstos</h2>
         <button
           type="button"
           disabled={loading}
-          onClick={() => setRevision(value => value + 1)}
+          onClick={refresh}
           className="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50 disabled:opacity-50"
         >
           {loading ? "Atualizando…" : "Atualizar"}
@@ -46,8 +76,8 @@ export function FollowUpPanel() {
       </div>
 
       <p className="mt-2 text-xs text-neutral-500">
-        Datas indicadas na consulta mais recente de cada paciente.
-        Não são agendamentos confirmados.
+        Datas indicadas na consulta mais recente de cada paciente. Não são
+        agendamentos confirmados.
       </p>
 
       {loading ? (
@@ -66,10 +96,7 @@ export function FollowUpPanel() {
               className="min-w-0 rounded-2xl border border-neutral-100 p-4"
             >
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold">
-                  {group.title}
-                </h3>
-
+                <h3 className="text-sm font-semibold">{group.title}</h3>
                 <span
                   aria-label={`${group.items.length} retornos`}
                   className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600"
@@ -92,7 +119,6 @@ export function FollowUpPanel() {
                       >
                         {row.patient}
                       </Link>
-
                       <p className="mt-1 text-xs text-neutral-500">
                         {dateLabel(row.returnDate)}
                       </p>
