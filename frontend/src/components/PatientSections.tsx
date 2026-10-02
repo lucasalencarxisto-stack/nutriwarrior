@@ -2,6 +2,7 @@ import { AssistantPanel } from "./AssistantPanel"
 import { CareWorkspace } from "./CareWorkspace"
 import { ClinicalTimeline } from "./ClinicalTimeline"
 import { EnergyAssessment } from "./EnergyAssessment"
+import { ClinicalWorkspaceHub } from "./ClinicalWorkspaceHub"
 import type { NutritionSummary } from "../services/nutrition"
 import type { DayRecord } from "../services/days"
 import type { ReactNode } from "react"
@@ -13,6 +14,7 @@ import {
   Gauge,
   LayoutDashboard,
   UtensilsCrossed,
+  Stethoscope,
 } from "lucide-react"
 
 type Props = {
@@ -25,10 +27,13 @@ type Props = {
   bmi: number | null
   age: number | null
   targetWeight?: number | null
+  patientName: string
+  initialTags?: string[]
 }
 
 const sections = [
   { id: "overview", label: "Visão geral", icon: LayoutDashboard },
+  { id: "workspace", label: "Atendimento", icon: Stethoscope },
   { id: "timeline", label: "Timeline", icon: Clock3 },
   { id: "assessments", label: "Avaliações", icon: Gauge },
   { id: "consultations", label: "Consultas", icon: ClipboardList },
@@ -55,6 +60,8 @@ export function PatientSections({
   bmi,
   age,
   targetWeight,
+  patientName,
+  initialTags,
 }: Props) {
   const [params, setParams] = useSearchParams()
   const active =
@@ -158,6 +165,20 @@ export function PatientSections({
         )}
 
         {active === "overview" && children}
+
+        {active === "workspace" && (
+          <ClinicalWorkspaceHub
+            clienteId={clienteId}
+            patientName={patientName}
+            initialTags={initialTags}
+            records={records}
+            summaries={summaries}
+            heightCm={heightCm}
+            currentWeight={currentWeight}
+            age={age}
+            targetWeight={targetWeight}
+          />
+        )}
 
         {active === "assessments" && (
           <section

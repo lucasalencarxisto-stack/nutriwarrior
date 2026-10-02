@@ -8,6 +8,7 @@ export type Patient = {
   clienteId?: number | null
   alturaCm?: number | null
   dataNascimento?: string | null
+  tags?: string[]
 }
 
 export type NewPatientRequest = {
@@ -17,6 +18,7 @@ export type NewPatientRequest = {
   telefone?: string
   alturaCm?: number | null
   dataNascimento?: string | null
+  tags?: string[]
 }
 
 export async function getMyPatients(): Promise<Patient[]> {
