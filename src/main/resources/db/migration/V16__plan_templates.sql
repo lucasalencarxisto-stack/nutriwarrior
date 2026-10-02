@@ -10,4 +10,4 @@ CREATE TABLE plan_template (
 );
 
 CREATE INDEX ix_plan_template_author_updated
-    ON plan_template(author_id, updated_at DESC);
+    ON plan_template(author_id, updated_at);

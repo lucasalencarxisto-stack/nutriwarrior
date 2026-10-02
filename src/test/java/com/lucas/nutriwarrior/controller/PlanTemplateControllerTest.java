@@ -84,15 +84,28 @@ class PlanTemplateControllerTest extends AuthenticatedIntegrationTest {
 
     @Test
     void patientCannotAccessTemplates() throws Exception {
+        String email = "template-patient@example.com";
+
+        mvc.perform(
+                post("/nutricionistas/me/pacientes")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(Map.of(
+                        "nome", "Paciente template",
+                        "email", email,
+                        "senha", "senha12345"
+                    )))
+            )
+            .andExpect(status().isCreated());
+
         mvc.perform(
                 get("/nutricionistas/me/plan-templates")
-                    .with(user("paciente@example.com").roles("PACIENTE"))
+                    .with(user(email).roles("PACIENTE"))
             )
             .andExpect(status().isForbidden());
 
         mvc.perform(
                 post("/nutricionistas/me/plan-templates")
-                    .with(user("paciente@example.com").roles("PACIENTE"))
+                    .with(user(email).roles("PACIENTE"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(mapper.writeValueAsString(body("Bloqueado")))
             )
