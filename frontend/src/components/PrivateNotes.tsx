@@ -58,7 +58,7 @@ export function PrivateNotes({ clienteId }: { clienteId: number }) {
   }
 
   return (
-    <section className="rounded-3xl border border-neutral-200 bg-white p-5">
+    <section id="notes" className="scroll-mt-6 rounded-3xl border border-neutral-200 bg-white p-5">
       <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
         Área profissional
       </p>

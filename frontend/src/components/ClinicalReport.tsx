@@ -90,7 +90,7 @@ ${meals.map(meal => `<div class="meal"><strong>${esc(meal.name)}</strong><br>${e
   }
 
   return (
-    <section className="rounded-3xl border border-neutral-200 bg-neutral-950 p-5 text-white">
+    <section id="report" className="scroll-mt-6 rounded-3xl border border-neutral-200 bg-neutral-950 p-5 text-white">
       <p className="text-xs font-semibold uppercase tracking-wide text-emerald-300">
         Relatório
       </p>

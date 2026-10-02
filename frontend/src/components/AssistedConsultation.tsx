@@ -74,7 +74,7 @@ export function AssistedConsultation({
   }
 
   return (
-    <section className="rounded-3xl border border-neutral-200 bg-white p-5 sm:p-7">
+    <section id="consultation" className="scroll-mt-6 rounded-3xl border border-neutral-200 bg-white p-5 sm:p-7">
       <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
         Modo atendimento
       </p>

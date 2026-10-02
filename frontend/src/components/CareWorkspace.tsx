@@ -13,6 +13,7 @@ import {
 } from "../services/care"
 
 import { PlanView } from "./PlanView"
+import { PlanTemplateManager } from "./PlanTemplateManager"
 import type { DayRecord } from "../services/days"
 import type { NutritionSummary } from "../services/nutrition"
 
@@ -534,6 +535,23 @@ export function CareWorkspace({
                   </span>
                 )}
               </div>
+
+              {mode === "PLAN" && (
+                <PlanTemplateManager
+                  title={title}
+                  notes={notes}
+                  meals={meals}
+                  onApply={template => {
+                    const templateMeals = template.meals.map(meal => ({ ...meal }))
+                    setTitle(template.title)
+                    setDate(today())
+                    setNotes(template.notes)
+                    setMeals(templateMeals.length > 0 ? templateMeals : [emptyMeal()])
+                    requestId.current = null
+                    setSuccess(`Modelo “${template.name}” aplicado ao rascunho.`)
+                  }}
+                />
+              )}
 
               {mode === "PLAN" && latestPlan && (
                 <button

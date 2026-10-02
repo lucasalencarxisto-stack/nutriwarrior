@@ -86,7 +86,7 @@ export function AppointmentPanel({ clienteId }: { clienteId: number }) {
   }
 
   return (
-    <section className="rounded-3xl border border-neutral-200 bg-white p-5">
+    <section id="agenda" className="scroll-mt-6 rounded-3xl border border-neutral-200 bg-white p-5">
       <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Agenda</p>
       <h3 className="mt-2 font-semibold">Consultas agendadas</h3>
 

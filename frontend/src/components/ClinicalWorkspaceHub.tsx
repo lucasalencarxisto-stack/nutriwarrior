@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+import { useLocation } from "react-router-dom"
 import type { DayRecord } from "../services/days"
 import type { NutritionSummary } from "../services/nutrition"
 import { AppointmentPanel } from "./AppointmentPanel"
@@ -29,6 +31,15 @@ export function ClinicalWorkspaceHub({
   age: number | null
   targetWeight?: number | null
 }) {
+  const location = useLocation()
+
+  useEffect(() => {
+    if (!location.hash) return
+
+    const target = document.getElementById(location.hash.slice(1))
+    target?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }, [location.hash])
+
   return (
     <div className="space-y-6">
       <AssistedConsultation
