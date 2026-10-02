@@ -11,5 +11,5 @@ public record PlanTemplateRequest(
     @NotBlank @Size(max = 120) String name,
     @NotBlank @Size(max = 160) String title,
     @NotNull @Size(max = 8000) String notes,
-    @NotNull @Size(min = 1, max = 12) List<@NotNull @Valid CareRequest.Meal> meals
+    @NotNull @Valid @Size(min = 1, max = 12) List<CareRequest.Meal> meals
 ) {}
