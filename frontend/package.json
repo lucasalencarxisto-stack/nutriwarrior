@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test tests/energy.test.cjs",
+    "test:energy": "node --test tests/energy.test.cjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.0",

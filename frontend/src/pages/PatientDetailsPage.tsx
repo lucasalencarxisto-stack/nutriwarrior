@@ -1,3 +1,4 @@
+import { PatientSections } from "../components/PatientSections"
 import {
 
     ArrowLeft,
@@ -206,7 +207,7 @@ function getWhatsAppLink(
 
 
 
-    return `https\://wa.me/${digits}`
+    return `https://wa.me/${digits}`
 
 }
 
@@ -770,10 +771,6 @@ export function PatientDetailsPage() {
 
         )
 
-
-
-
-
     const bmiStatus =
         getBmiStatus(
             bodyMassIndex,
@@ -811,8 +808,6 @@ export function PatientDetailsPage() {
             },
         )
     }
-
-
 
     useEffect(
 
@@ -1472,7 +1467,8 @@ export function PatientDetailsPage() {
 
 
 
-                <section className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <PatientSections clienteId={Number(clienteId)} summaries={summaries} key={clienteId} age={age} records={dayRecords} heightCm={patient.alturaCm} currentWeight={currentWeightKg} bmi={bodyMassIndex} targetWeight={goals?.pesoAlvoKg ?? null}>
+                <section className="grid grid-cols-2 gap-4 xl:grid-cols-4">
 
 
 
@@ -1616,8 +1612,8 @@ export function PatientDetailsPage() {
 
                             <p
                                 className={`text-2xl font-semibold ${bmiStatus
-                                        ? bmiStatus.valueClass
-                                        : "text-neutral-950"
+                                    ? bmiStatus.valueClass
+                                    : "text-neutral-950"
                                     }`}
                             >
                                 {bodyMassIndex == null
@@ -1708,6 +1704,7 @@ export function PatientDetailsPage() {
 
 
 
+                </PatientSections>
             </main>
 
 

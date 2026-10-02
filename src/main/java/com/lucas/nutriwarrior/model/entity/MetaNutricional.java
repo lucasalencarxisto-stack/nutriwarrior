@@ -30,4 +30,7 @@ public class MetaNutricional {
 
     @Column(name = "agua_ml")
     public Integer aguaMl;
+
+    @Column(name = "peso_alvo_kg", precision = 10, scale = 2)
+    public BigDecimal pesoAlvoKg;
 }

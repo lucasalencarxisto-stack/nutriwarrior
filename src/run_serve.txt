@@ -1,0 +1,20 @@
+$env:DB_URL = "jdbc:postgresql://localhost:5432/nutriwarrior"
+$env:DB_USERNAME = "nutriwarrior"
+$env:DB_PASSWORD = "nutriwarrior_dev"
+$env:JWT_SECRET = "nutriwarrior-dev-secret-change-this-123456789"
+
+.\gradlew.bat bootRun --args="--spring.profiles.active=prod"
+
+// frontend
+
+npm.cmd run dev 
+
+//Build
+
+npm.cmd run build 
+
+.\gradlew.bat bootRun build
+
+//teste
+
+.\gradlew.bat test
