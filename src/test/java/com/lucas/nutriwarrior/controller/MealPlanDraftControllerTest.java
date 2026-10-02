@@ -82,4 +82,20 @@ class MealPlanDraftControllerTest extends AuthenticatedIntegrationTest {
             .contentType(MediaType.APPLICATION_JSON).content(mapper.writeValueAsString(body())))
             .andExpect(status().isForbidden());
     }
+
+
+    @Test void nutricionistaPodeDescartarRascunho() throws Exception {
+        long id = paciente();
+
+        mvc.perform(put("/clientes/{id}/plano-rascunho", id)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(mapper.writeValueAsString(body())))
+            .andExpect(status().isOk());
+
+        mvc.perform(delete("/clientes/{id}/plano-rascunho", id))
+            .andExpect(status().isNoContent());
+
+        mvc.perform(get("/clientes/{id}/plano-rascunho", id))
+            .andExpect(status().isNoContent());
+    }
 }

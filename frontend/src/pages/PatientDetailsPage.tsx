@@ -207,7 +207,7 @@ function getWhatsAppLink(
 
 
 
-    return `https\://wa.me/${digits}`
+    return `https://wa.me/${digits}`
 
 }
 
