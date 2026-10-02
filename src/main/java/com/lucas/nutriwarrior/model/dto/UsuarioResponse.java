@@ -5,6 +5,7 @@ import com.lucas.nutriwarrior.model.entity.Usuario;
 import com.lucas.nutriwarrior.model.entity.Cliente;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class UsuarioResponse {
     public Long id;
@@ -15,6 +16,7 @@ public class UsuarioResponse {
     public Long clienteId;
     public Double alturaCm;
     public LocalDate dataNascimento;
+    public List<String> tags;
 
     public static UsuarioResponse fromEntity(Usuario usuario, Long clienteId) {
         UsuarioResponse response = new UsuarioResponse();
@@ -42,6 +44,13 @@ public class UsuarioResponse {
 
     response.dataNascimento =
         cliente.dataNascimento;
+
+    response.tags = cliente.tags == null || cliente.tags.isBlank()
+        ? List.of()
+        : java.util.Arrays.stream(cliente.tags.split(","))
+            .map(String::trim)
+            .filter(value -> !value.isBlank())
+            .toList();
 
     return response;
  }

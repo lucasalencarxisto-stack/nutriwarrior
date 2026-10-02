@@ -57,13 +57,17 @@ public class CareService {
         if (request.kind() != CareRequest.Kind.CONSULTATION && request.returnDate() != null) bad("Retorno pertence à consulta.");
         if (request.returnDate() != null && request.returnDate().isBefore(request.date())) bad("Retorno anterior à consulta.");
         if (request.kind() != CareRequest.Kind.CONSULTATION && !request.anamnesis().isBlank()) bad("Anamnese pertence à consulta.");
+        if (request.kind() != CareRequest.Kind.CONSULTATION && request.checklist() != null && !request.checklist().isEmpty()) bad("Checklist pertence à consulta.");
 
         JsonNode payload;
         switch (request.kind()) {
             case CONSULTATION -> {
                 if (request.energy() != null || request.meals() != null) bad("Dados incompatíveis com consulta.");
                 if (request.notes().isBlank() && request.anamnesis().isBlank()) bad("Registre a anamnese ou as observações da consulta.");
-                payload = mapper.createObjectNode();
+                payload = mapper.valueToTree(Map.of(
+                    "checklist",
+                    request.checklist() == null ? List.of() : request.checklist()
+                ));
             }
             case PLAN -> {
                 if (request.energy() != null || request.meals() == null || request.meals().isEmpty()) bad("Informe ao menos uma refeição.");

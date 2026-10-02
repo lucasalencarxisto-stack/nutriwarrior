@@ -16,6 +16,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Locale;
 
 @Service
 public class PacienteService {
@@ -55,6 +57,7 @@ public class PacienteService {
         cliente.pesoAtualKg = request.pesoAtualKg;
         cliente.alturaCm = request.alturaCm;
         cliente.dataNascimento = request.dataNascimento;
+        cliente.tags = normalizeTags(request.tags);
         cliente.usuario = paciente;
         cliente.nutricionista = nutricionista;
         clienteRepository.save(cliente);
@@ -170,6 +173,10 @@ public class PacienteService {
     cliente.dataNascimento = request.dataNascimento;
 }
 
+        if (request.tags != null) {
+            cliente.tags = normalizeTags(request.tags);
+        }
+
         usuarioRepository.save(
             paciente
         );
@@ -211,6 +218,28 @@ public class PacienteService {
             usuarioRepository.delete(
                     paciente);
         }
+    }
+
+    private String normalizeTags(List<String> tags) {
+        if (tags == null || tags.isEmpty()) {
+            return "";
+        }
+
+        var normalized = new LinkedHashSet<String>();
+        for (String tag : tags) {
+            if (tag == null) continue;
+            String value = tag.trim().toLowerCase(Locale.ROOT);
+            if (!value.isBlank()) normalized.add(value);
+        }
+
+        if (normalized.size() > 12) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Maximo de 12 tags por paciente"
+            );
+        }
+
+        return String.join(",", normalized);
     }
 
     private String normalizarTelefone(String telefone) {

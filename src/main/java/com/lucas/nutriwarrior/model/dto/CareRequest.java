@@ -16,7 +16,8 @@ public record CareRequest(
     @NotNull @Size(max = 8000) String anamnesis,
     @Size(max = 12) List<@NotNull @Valid Meal> meals,
     @Valid Energy energy,
-    @Positive Long consultationId
+    @Positive Long consultationId,
+    @Size(max = 12) List<@NotBlank @Size(max = 80) String> checklist
 ) {
     public enum Kind { CONSULTATION, PLAN, ENERGY }
     public record Meal(@NotBlank @Size(max = 80) String name,

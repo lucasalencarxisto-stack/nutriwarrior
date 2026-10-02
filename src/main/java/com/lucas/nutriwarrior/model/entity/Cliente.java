@@ -22,6 +22,9 @@ public class Cliente {
     @Column(name = "data_nascimento")
     public LocalDate dataNascimento;
 
+    @Column(nullable = false, columnDefinition = "text")
+    public String tags = "";
+
     @OneToOne
     @JoinColumn(name = "usuario_id")
     public Usuario usuario;

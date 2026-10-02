@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class NovoPacienteRequest {
 
@@ -30,4 +31,7 @@ public class NovoPacienteRequest {
     public Double alturaCm;
 
     public LocalDate dataNascimento;
+
+    @Size(max = 12)
+    public List<@Size(max = 40) String> tags;
 }
