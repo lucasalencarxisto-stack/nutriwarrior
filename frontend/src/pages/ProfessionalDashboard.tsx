@@ -934,7 +934,9 @@ export function ProfessionalDashboard() {
 
                 </div>
 
-                <DashboardInsights patientCount={patients.length} loadingPatients={loadingPatients} />\n                <FollowUpPanel />
+                <DashboardInsights patientCount={patients.length} loadingPatients={loadingPatients} />
+                <AgendaOverview />
+                <FollowUpPanel />
             </main>
 
             {(newPatientModalOpen || patientToEdit !== null) && <NewPatientModal
