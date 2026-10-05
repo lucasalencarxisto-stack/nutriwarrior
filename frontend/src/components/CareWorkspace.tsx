@@ -14,6 +14,7 @@ import {
 
 import { PlanView } from "./PlanView"
 import { PlanTemplateManager } from "./PlanTemplateManager"
+import { ScheduleDatePicker } from "./SchedulePicker"
 import type { DayRecord } from "../services/days"
 import type { NutritionSummary } from "../services/nutrition"
 
@@ -575,29 +576,25 @@ export function CareWorkspace({
               </label>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block text-sm">
-                  Data
-                  <input
-                    className={input}
-                    type="date"
-                    required
-                    max={today()}
-                    value={date}
-                    onChange={event => setDate(event.target.value)}
-                  />
-                </label>
+                <ScheduleDatePicker
+                  id={mode === "PLAN" ? "plan-date" : "consultation-date"}
+                  label="Data"
+                  value={date}
+                  onChange={setDate}
+                  max={today()}
+                  required
+                  disabled={formBlocked}
+                />
 
                 {mode === "CONSULTATION" && (
-                  <label className="block text-sm">
-                    Retorno previsto (opcional)
-                    <input
-                      className={input}
-                      type="date"
-                      min={date}
-                      value={returnDate}
-                      onChange={event => setReturnDate(event.target.value)}
-                    />
-                  </label>
+                  <ScheduleDatePicker
+                    id="consultation-return-date"
+                    label="Retorno previsto (opcional)"
+                    value={returnDate}
+                    onChange={setReturnDate}
+                    min={date}
+                    disabled={formBlocked}
+                  />
                 )}
               </div>
 
