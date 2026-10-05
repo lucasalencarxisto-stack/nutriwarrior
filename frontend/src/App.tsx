@@ -15,6 +15,10 @@ import { ProfessionalDashboard } from "./pages/ProfessionalDashboard"
 
 import { ProfessionalInsightsPage } from "./pages/ProfessionalInsightsPage"
 
+import { ProfessionalPatientsPage } from "./pages/ProfessionalPatientsPage"
+
+import { ProfessionalReportsPage } from "./pages/ProfessionalReportsPage"
+
 import { PatientDetailsPage } from "./pages/PatientDetailsPage"
 
 function App() {
@@ -51,6 +55,24 @@ function App() {
           element={
             <ProtectedRoute allowedRole="NUTRICIONISTA">
               <ProfessionalDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/professional/patients"
+          element={
+            <ProtectedRoute allowedRole="NUTRICIONISTA">
+              <ProfessionalPatientsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/professional/reports"
+          element={
+            <ProtectedRoute allowedRole="NUTRICIONISTA">
+              <ProfessionalReportsPage />
             </ProtectedRoute>
           }
         />
