@@ -4,7 +4,7 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
-  type KeyboardEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from "react"
 import { Check, X } from "lucide-react"
 import { apiFetch } from "../services/api"
@@ -194,7 +194,7 @@ export function AssistantPanel({
   useEffect(() => {
     if (!attachmentMenuOpen) return
 
-    function handleEscape(event: globalThis.KeyboardEvent) {
+    function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setAttachmentMenuOpen(false)
       }
@@ -397,7 +397,7 @@ export function AssistantPanel({
     input.click()
   }
 
-  function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+  function handleComposerKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
     if (
       event.key === "Enter" &&
       !event.shiftKey &&
