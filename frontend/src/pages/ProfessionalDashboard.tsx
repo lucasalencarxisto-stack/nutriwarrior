@@ -1,5 +1,7 @@
 import { FollowUpPanel } from "../components/FollowUpPanel"
 import { DashboardInsights } from "../components/DashboardInsights"
+import { AgendaOverview } from "../components/AgendaOverview"
+import { NotificationBell } from "../components/NotificationBell"
 import { NewPatientModal } from "../components/NewPatientModal"
 import { useNavigate } from "react-router-dom"
 import whatsappIcon from "../assets/whatsapp_icone.png"
@@ -7,7 +9,6 @@ import { DeletePatientModal } from "../components/DeletePatientModal"
 
 import {
     Activity,
-    Bell,
     Bot,
     ChevronRight,
     CircleAlert,
@@ -361,13 +362,7 @@ export function ProfessionalDashboard() {
 
                     <div className="flex items-center gap-4">
 
-                        <button className="relative flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 transition hover:bg-neutral-50">
-
-                            <Bell size={18} />
-
-                            <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[var(--nw-green)]" />
-
-                        </button>
+                        <NotificationBell />
 
 
                         <div className="hidden text-right sm:block">
@@ -939,7 +934,9 @@ export function ProfessionalDashboard() {
 
                 </div>
 
-                <DashboardInsights patientCount={patients.length} loadingPatients={loadingPatients} />\n                <FollowUpPanel />
+                <DashboardInsights patientCount={patients.length} loadingPatients={loadingPatients} />
+                <AgendaOverview />
+                <FollowUpPanel />
             </main>
 
             {(newPatientModalOpen || patientToEdit !== null) && <NewPatientModal

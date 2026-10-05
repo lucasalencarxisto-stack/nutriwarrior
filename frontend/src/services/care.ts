@@ -21,6 +21,7 @@ export type CareRecord = {
     restingKcal?: number
     totalKcal?: number | null
     consultationId?: number
+    checklist?: string[]
   }
 }
 
@@ -35,6 +36,7 @@ export type CareDraft = {
   meals?: Meal[]
   energy?: EnergyInput
   consultationId?: number
+  checklist?: string[]
 }
 
 export const today = () => {

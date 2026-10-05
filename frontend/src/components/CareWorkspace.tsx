@@ -13,6 +13,7 @@ import {
 } from "../services/care"
 
 import { PlanView } from "./PlanView"
+import { PlanTemplateManager } from "./PlanTemplateManager"
 import type { DayRecord } from "../services/days"
 import type { NutritionSummary } from "../services/nutrition"
 
@@ -293,6 +294,38 @@ export function CareWorkspace({
     )
   }
 
+  function duplicateMeal(index: number) {
+    if (meals.length >= 12) return
+    setMeals(current => {
+      const copy = { ...current[index] }
+      return [...current.slice(0, index + 1), copy, ...current.slice(index + 1)]
+    })
+    requestId.current = null
+  }
+
+  function moveMeal(index: number, direction: -1 | 1) {
+    const target = index + direction
+    if (target < 0 || target >= meals.length) return
+    setMeals(current => {
+      const next = [...current]
+      const [item] = next.splice(index, 1)
+      next.splice(target, 0, item)
+      return next
+    })
+    requestId.current = null
+  }
+
+  function useLatestPlanAsBase() {
+    if (!latestPlan) return
+    const baseMeals = (latestPlan.payload.meals ?? []).map(meal => ({ ...meal }))
+    setTitle(latestPlan.title)
+    setDate(today())
+    setNotes(latestPlan.notes)
+    setMeals(baseMeals.length > 0 ? baseMeals : [emptyMeal()])
+    requestId.current = null
+    setSuccess(`Versão ${latestPlan.version} carregada como base do novo rascunho.`)
+  }
+
   function resetPlanEditor() {
     const resetTitle = "Plano alimentar"
     const resetDate = today()
@@ -503,6 +536,33 @@ export function CareWorkspace({
                 )}
               </div>
 
+              {mode === "PLAN" && (
+                <PlanTemplateManager
+                  title={title}
+                  notes={notes}
+                  meals={meals}
+                  onApply={template => {
+                    const templateMeals = template.meals.map(meal => ({ ...meal }))
+                    setTitle(template.title)
+                    setDate(today())
+                    setNotes(template.notes)
+                    setMeals(templateMeals.length > 0 ? templateMeals : [emptyMeal()])
+                    requestId.current = null
+                    setSuccess(`Modelo “${template.name}” aplicado ao rascunho.`)
+                  }}
+                />
+              )}
+
+              {mode === "PLAN" && latestPlan && (
+                <button
+                  type="button"
+                  onClick={useLatestPlanAsBase}
+                  className="rounded-xl border border-teal-200 bg-teal-50 px-4 py-2 text-sm font-semibold text-teal-800"
+                >
+                  Usar plano vigente como base
+                </button>
+              )}
+
               <label className="block text-sm">
                 Título
                 <input
@@ -616,20 +676,46 @@ export function CareWorkspace({
                         />
                       </label>
 
-                      {meals.length > 1 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
                         <button
                           type="button"
-                          className="mt-2 text-xs text-red-700"
-                          onClick={() => {
-                            setMeals(current =>
-                              current.filter((_, mealIndex) => mealIndex !== index),
-                            )
-                            requestId.current = null
-                          }}
+                          disabled={index === 0}
+                          onClick={() => moveMeal(index, -1)}
+                          className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs disabled:opacity-30"
                         >
-                          Remover refeição do rascunho
+                          ↑ Subir
                         </button>
-                      )}
+                        <button
+                          type="button"
+                          disabled={index === meals.length - 1}
+                          onClick={() => moveMeal(index, 1)}
+                          className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs disabled:opacity-30"
+                        >
+                          ↓ Descer
+                        </button>
+                        <button
+                          type="button"
+                          disabled={meals.length >= 12}
+                          onClick={() => duplicateMeal(index)}
+                          className="rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs disabled:opacity-30"
+                        >
+                          Duplicar refeição
+                        </button>
+                        {meals.length > 1 && (
+                          <button
+                            type="button"
+                            className="rounded-lg px-2.5 py-1.5 text-xs text-red-700"
+                            onClick={() => {
+                              setMeals(current =>
+                                current.filter((_, mealIndex) => mealIndex !== index),
+                              )
+                              requestId.current = null
+                            }}
+                          >
+                            Remover
+                          </button>
+                        )}
+                      </div>
                     </fieldset>
                   ))}
 
@@ -728,6 +814,14 @@ export function CareWorkspace({
                       Registrado por {entry.author} em{" "}
                       {new Date(entry.createdAt).toLocaleString("pt-BR")}
                     </p>
+                    {entry.payload.checklist && entry.payload.checklist.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold">Checklist concluído</h4>
+                        <ul className="mt-1 list-disc pl-5">
+                          {entry.payload.checklist.map(item => <li key={item}>{item}</li>)}
+                        </ul>
+                      </div>
+                    )}
                     {entry.anamnesis && (
                       <div>
                         <h4 className="font-semibold">Anamnese</h4>
