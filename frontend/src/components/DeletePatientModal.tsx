@@ -29,6 +29,8 @@ export function DeletePatientModal({
   onClose,
   onDeleted,
 }: DeletePatientModalProps) {
+  const toast = useToast()
+
   const [loading, setLoading] =
     useState(false)
 
@@ -66,9 +68,9 @@ export function DeletePatientModal({
 
   async function handleDelete() {
     if (!clienteId) {
-      setError(
-        "Não foi possível identificar o paciente.",
-      )
+      const message = "Não foi possível identificar o paciente."
+      setError(message)
+      toast.error(message)
       return
     }
 
