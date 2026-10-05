@@ -17,6 +17,8 @@ import {
 } from "lucide-react"
 import { BrandLogo } from "../components/BrandLogo"
 import { NotificationBell } from "../components/NotificationBell"
+import { ReportPreviewSkeleton } from "../components/Skeleton"
+import { useToast } from "../components/ToastProvider"
 import { getCareHistory, type CareRecord } from "../services/care"
 import { getPatientDays, type DayRecord } from "../services/days"
 import {
@@ -80,6 +82,7 @@ function getInitials(name?: string) {
 
 export function ProfessionalReportsPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [user, setUser] = useState<ProfessionalUser | null>(null)
   const [patients, setPatients] = useState<Patient[]>([])
   const [loadingPatients, setLoadingPatients] = useState(true)
@@ -124,12 +127,16 @@ export function ProfessionalReportsPage() {
 
   async function generateReport() {
     if (!selectedPatient?.clienteId) {
-      setError("Selecione um paciente com ficha ativa.")
+      const message = "Selecione um paciente com ficha ativa."
+      setError(message)
+      toast.error(message)
       return
     }
 
     if (!fromDate || !toDate || fromDate > toDate) {
-      setError("Informe um período válido para gerar o relatório.")
+      const message = "Informe um período válido para gerar o relatório."
+      setError(message)
+      toast.error(message)
       return
     }
 
@@ -161,12 +168,16 @@ export function ProfessionalReportsPage() {
           .filter(item => item.date >= fromDate && item.date <= toDate)
           .sort((a, b) => a.date.localeCompare(b.date)),
       })
+
+      toast.success("Relatório gerado com os dados disponíveis.")
     } catch (cause) {
-      setError(
+      const message =
         cause instanceof Error
           ? cause.message
-          : "Não foi possível gerar o relatório.",
-      )
+          : "Não foi possível gerar o relatório."
+
+      setError(message)
+      toast.error(message)
       setReport(null)
     } finally {
       setLoadingReport(false)
@@ -444,6 +455,23 @@ export function ProfessionalReportsPage() {
               </button>
             </div>
           </section>
+
+          {loadingReport && <ReportPreviewSkeleton />}
+
+          {!loadingReport && !report && (
+            <section className="mt-7 flex min-h-[260px] items-center justify-center rounded-[28px] border border-dashed border-neutral-200 bg-white px-6 text-center shadow-sm print:hidden">
+              <div>
+                <FileText size={30} className="mx-auto text-neutral-300" />
+                <h3 className="mt-4 font-semibold">
+                  Seu relatório aparecerá aqui
+                </h3>
+                <p className="mt-2 max-w-md text-sm leading-6 text-neutral-500">
+                  Escolha o paciente, o período e o tipo de relatório. O NutriWarrior
+                  usa somente os registros existentes e não inventa valores ausentes.
+                </p>
+              </div>
+            </section>
+          )}
 
           {report && metrics && (
             <section className="mt-7 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 print:mt-0 print:border-0 print:p-8 print:shadow-none">
