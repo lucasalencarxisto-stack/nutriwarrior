@@ -9,7 +9,7 @@ import {
   Users,
   X,
 } from "lucide-react"
-import { useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { useNavigate } from "react-router-dom"
 import { BrandLogo } from "./BrandLogo"
 import { NotificationBell } from "./NotificationBell"
@@ -191,6 +191,17 @@ export function ProfessionalLayout({
     navigate(href)
   }
 
+  useEffect(() => {
+    if (!mobileOpen) return
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setMobileOpen(false)
+    }
+
+    window.addEventListener("keydown", handleEscape)
+    return () => window.removeEventListener("keydown", handleEscape)
+  }, [mobileOpen])
+
   return (
     <div
       className={[
@@ -308,7 +319,12 @@ export function ProfessionalLayout({
           </div>
         </header>
 
-        <div className="mx-auto max-w-[1540px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
+        <div
+          className={[
+            "mx-auto max-w-[1540px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-9",
+            printFriendly ? "print:max-w-none print:px-0 print:py-0" : "",
+          ].join(" ")}
+        >
           {children}
         </div>
       </main>
