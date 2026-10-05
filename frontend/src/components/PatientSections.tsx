@@ -86,8 +86,8 @@ export function PatientSections({
 
   return (
     <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-[180px_minmax(0,1fr)]">
-      <aside className="self-start lg:sticky lg:top-6">
-        <div className="rounded-3xl border border-neutral-200 bg-white p-3 shadow-sm">
+      <aside className="self-start lg:sticky lg:top-24">
+        <div className="rounded-3xl border border-neutral-200 bg-white/95 p-3 shadow-[0_12px_30px_rgba(15,23,42,0.055)] backdrop-blur">
           <label
             htmlFor="patient-section"
             className="mb-2 block px-2 text-xs font-semibold text-neutral-500 lg:hidden"
