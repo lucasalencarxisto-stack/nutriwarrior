@@ -18,6 +18,7 @@ import { BrandLogo } from "../components/BrandLogo"
 import { DeletePatientModal } from "../components/DeletePatientModal"
 import { NewPatientModal } from "../components/NewPatientModal"
 import { NotificationBell } from "../components/NotificationBell"
+import { PatientListSkeleton } from "../components/Skeleton"
 import whatsappIcon from "../assets/whatsapp_icone.png"
 import { getFollowUps, today, type FollowUp } from "../services/care"
 import { getMe } from "../services/auth"
@@ -327,9 +328,7 @@ export function ProfessionalPatientsPage() {
             )}
 
             {loading ? (
-              <div className="flex min-h-[320px] items-center justify-center text-sm text-neutral-500">
-                Carregando pacientes...
-              </div>
+              <PatientListSkeleton />
             ) : filteredPatients.length === 0 ? (
               <div className="flex min-h-[320px] items-center justify-center text-center">
                 <div>
