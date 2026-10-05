@@ -3,6 +3,8 @@ import {
   Bold,
   ImagePlus,
   Italic,
+  Minus,
+  Plus,
   RotateCcw,
   Trash2,
   Underline,
@@ -32,6 +34,7 @@ type ReportBranding = {
   italic: boolean
   underline: boolean
   color: string
+  fontSize: number
   logoDataUrl: string | null
 }
 
@@ -41,6 +44,7 @@ const defaultBranding: ReportBranding = {
   italic: false,
   underline: false,
   color: "#171717",
+  fontSize: 20,
   logoDataUrl: null,
 }
 
@@ -68,6 +72,10 @@ function normalizeBranding(value: Partial<ReportBranding> | null): ReportBrandin
     italic: Boolean(value?.italic),
     underline: Boolean(value?.underline),
     color: validColor,
+    fontSize:
+      typeof value?.fontSize === "number" && Number.isFinite(value.fontSize)
+        ? Math.min(32, Math.max(14, Math.round(value.fontSize)))
+        : defaultBranding.fontSize,
     logoDataUrl: logo,
   }
 }
@@ -196,21 +204,24 @@ export function ClinicalReport({
     popup.opener = null
 
     const meals = latestPlan?.payload.meals ?? []
-    const footerText = esc(branding.text).replaceAll("\n", "<br>")
-    const footerStyle = [
+    const hasCustomBrand = Boolean(
+      branding.text.trim() || branding.logoDataUrl,
+    )
+    const brandText = esc(branding.text).replaceAll("\n", "<br>")
+    const brandTextStyle = [
       `color:${branding.color}`,
+      `font-size:${branding.fontSize}px`,
       branding.bold ? "font-weight:700" : "font-weight:500",
       branding.italic ? "font-style:italic" : "font-style:normal",
       branding.underline ? "text-decoration:underline" : "text-decoration:none",
     ].join(";")
-    const customFooter =
-      branding.text.trim() || branding.logoDataUrl
-        ? `
-<footer class="custom-footer">
-  ${branding.logoDataUrl ? `<img src="${esc(branding.logoDataUrl)}" alt="Logo personalizado">` : ""}
-  ${footerText ? `<div style="${footerStyle}">${footerText}</div>` : ""}
-</footer>`
-        : ""
+    const reportBrand = hasCustomBrand
+      ? `
+<div class="custom-brand">
+  ${branding.logoDataUrl ? `<img src="${esc(branding.logoDataUrl)}" alt="Logo do profissional ou clínica">` : ""}
+  ${brandText ? `<div class="custom-brand-name" style="${brandTextStyle}">${brandText}</div>` : ""}
+</div>`
+      : `<img class="brand" src="${esc(brandLogo)}" alt="NutriWarrior">`
 
     popup.document.write(`<!doctype html>
 <html lang="pt-BR">
@@ -225,6 +236,9 @@ body{font-family:Arial,sans-serif;color:#171717;line-height:1.45;background:#fff
 .page{min-height:255mm;display:flex;flex-direction:column}
 .content{flex:1}
 .brand{width:138px;height:auto;display:block;margin-bottom:20px}
+.custom-brand{min-height:54px;display:flex;align-items:center;gap:14px;margin-bottom:20px}
+.custom-brand img{max-height:58px;max-width:170px;object-fit:contain}
+.custom-brand-name{line-height:1.15;white-space:normal}
 .eyebrow{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#047857}
 h1{font-size:27px;line-height:1.15;margin:5px 0 6px}
 .subtitle{font-size:12px;color:#737373;margin:0}
@@ -238,8 +252,6 @@ p{font-size:13px}
 .recent-list{padding-left:18px;font-size:12px;color:#404040}
 .recent-list li{margin:6px 0}
 .disclaimer{margin-top:28px;padding:12px 14px;border-radius:10px;background:#f7f8f7;color:#666;font-size:11px}
-.custom-footer{margin-top:30px;border-top:1px solid #e5e5e5;padding-top:12px;display:flex;align-items:center;justify-content:center;gap:12px;text-align:center;font-size:11px;min-height:44px}
-.custom-footer img{max-height:34px;max-width:110px;object-fit:contain}
 .print-action{margin-top:18px;border:0;border-radius:10px;background:#171717;color:#fff;padding:10px 14px;font-weight:700}
 @media print{.print-action{display:none}}
 </style>
@@ -247,7 +259,7 @@ p{font-size:13px}
 <body>
 <div class="page">
   <main class="content">
-    <img class="brand" src="${esc(brandLogo)}" alt="NutriWarrior">
+    ${reportBrand}
     <div class="eyebrow">Relatório profissional</div>
     <h1>Relatório clínico</h1>
     <p class="subtitle">Paciente: ${esc(patientName)} · Gerado em ${esc(new Date().toLocaleString("pt-BR"))}</p>
@@ -272,13 +284,12 @@ p{font-size:13px}
       : '<p style="color:#737373">Nenhum registro nutricional recente disponível.</p>'}
 
     <div class="disclaimer">
-      Relatório descritivo gerado a partir dos registros disponíveis no NutriWarrior.
+      Relatório descritivo gerado a partir dos registros disponíveis no sistema.
       A interpretação clínica cabe ao profissional responsável.
     </div>
 
     <button class="print-action" onclick="window.print()">Imprimir / salvar em PDF</button>
   </main>
-  ${customFooter}
 </div>
 <script>window.onload=()=>setTimeout(()=>window.print(),120)</script>
 </body>
@@ -291,6 +302,8 @@ p{font-size:13px}
     fontWeight: branding.bold ? 700 : 500,
     fontStyle: branding.italic ? "italic" : "normal",
     textDecoration: branding.underline ? "underline" : "none",
+    fontSize: `${branding.fontSize}px`,
+    lineHeight: 1.15,
   } as const
 
   return (
@@ -304,16 +317,17 @@ p{font-size:13px}
         </p>
         <h3 className="mt-2 text-lg font-semibold">Resumo clínico para PDF</h3>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-400">
-          Gere o relatório com dados atuais e personalize a assinatura visual do
-          rodapé antes de imprimir ou salvar em PDF.
+          Gere o relatório com dados atuais e personalize a identidade que aparece
+          no topo do documento antes de imprimir ou salvar em PDF.
         </p>
 
         <div className="mt-5 rounded-[22px] border border-white/10 bg-white/[0.045] p-4 sm:p-5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-white">Edite seu rodapé</p>
+              <p className="text-sm font-semibold text-white">Personalize sua marca</p>
               <p className="mt-1 text-xs leading-5 text-neutral-400">
-                Nome do profissional, clínica ou identidade visual. A preferência fica salva neste navegador.
+                Use seu nome, o nome da clínica ou um logotipo no cabeçalho do PDF.
+                Se deixar tudo em branco, o NutriWarrior assume a identidade do relatório.
               </p>
             </div>
 
@@ -366,6 +380,44 @@ p{font-size:13px}
                     </button>
                   )
                 })}
+
+                <span className="mx-1 h-6 w-px bg-white/10" />
+
+                <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1">
+                  <button
+                    type="button"
+                    aria-label="Diminuir tamanho da fonte"
+                    title="Diminuir tamanho da fonte"
+                    disabled={branding.fontSize <= 14}
+                    onClick={() =>
+                      updateBranding({
+                        fontSize: Math.max(14, branding.fontSize - 2),
+                      })
+                    }
+                    className="grid h-7 w-7 place-items-center rounded-lg text-neutral-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <Minus size={13} />
+                  </button>
+
+                  <span className="min-w-11 text-center text-[11px] font-semibold text-neutral-300">
+                    {branding.fontSize}px
+                  </span>
+
+                  <button
+                    type="button"
+                    aria-label="Aumentar tamanho da fonte"
+                    title="Aumentar tamanho da fonte"
+                    disabled={branding.fontSize >= 32}
+                    onClick={() =>
+                      updateBranding({
+                        fontSize: Math.min(32, branding.fontSize + 2),
+                      })
+                    }
+                    className="grid h-7 w-7 place-items-center rounded-lg text-neutral-300 transition hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <Plus size={13} />
+                  </button>
+                </div>
 
                 <span className="mx-1 h-6 w-px bg-white/10" />
 
@@ -422,19 +474,40 @@ p{font-size:13px}
 
           <div className="mt-4 rounded-2xl bg-white px-4 py-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-neutral-400">
-              Prévia do rodapé
+              Prévia da marca no relatório
             </p>
-            <div className="mt-3 flex min-h-12 items-center justify-center gap-3 border-t border-neutral-100 pt-3 text-center">
-              {branding.logoDataUrl && (
-                <img
-                  src={branding.logoDataUrl}
-                  alt="Logo personalizado"
-                  className="max-h-9 max-w-28 object-contain"
-                />
+            <div className="mt-3 min-h-24 border-t border-neutral-100 pt-4">
+              {branding.text.trim() || branding.logoDataUrl ? (
+                <div className="flex min-h-16 items-center gap-4">
+                  {branding.logoDataUrl && (
+                    <img
+                      src={branding.logoDataUrl}
+                      alt="Logo personalizado"
+                      className="max-h-14 max-w-36 object-contain"
+                    />
+                  )}
+
+                  {branding.text.trim() && (
+                    <span
+                      style={textStyle}
+                      className="whitespace-pre-wrap text-left"
+                    >
+                      {branding.text}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex min-h-16 items-center justify-between gap-4">
+                  <img
+                    src={brandLogo}
+                    alt="NutriWarrior"
+                    className="h-auto w-32 object-contain"
+                  />
+                  <span className="max-w-xs text-right text-[11px] leading-5 text-neutral-400">
+                    Sem personalização, o relatório será emitido com a marca NutriWarrior.
+                  </span>
+                </div>
               )}
-              <span style={textStyle} className="whitespace-pre-wrap text-xs">
-                {branding.text || (!branding.logoDataUrl ? "Seu rodapé personalizado aparecerá aqui." : "")}
-              </span>
             </div>
           </div>
         </div>
