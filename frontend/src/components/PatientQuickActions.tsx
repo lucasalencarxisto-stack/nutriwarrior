@@ -44,7 +44,7 @@ export function PatientQuickActions() {
   return (
     <section
       aria-label="Ações rápidas do paciente"
-      className="mt-6 rounded-[28px] border border-neutral-200 bg-white p-4 shadow-sm"
+      className="mt-6 rounded-[28px] border border-neutral-200/80 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.04)]"
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="px-2 text-xs font-semibold uppercase tracking-wider text-neutral-400">
@@ -56,7 +56,7 @@ export function PatientQuickActions() {
             key={label}
             to={to}
             title={detail}
-            className="flex items-center gap-2 rounded-xl border border-neutral-100 bg-neutral-50 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800"
+            className="group flex items-center gap-2 rounded-xl border border-neutral-100 bg-neutral-50/70 px-3 py-2 text-sm font-medium text-neutral-700 transition hover:-translate-y-0.5 hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-800"
           >
             <Icon size={16} aria-hidden="true" />
             {label}

@@ -2,7 +2,7 @@ import { FollowUpPanel } from "../components/FollowUpPanel"
 import { AgendaOverview } from "../components/AgendaOverview"
 import { AssistantPanel } from "../components/AssistantPanel"
 import { DashboardTableSkeleton } from "../components/Skeleton"
-import { NotificationBell } from "../components/NotificationBell"
+import { ProfessionalLayout } from "../components/ProfessionalLayout"
 import { NewPatientModal } from "../components/NewPatientModal"
 import { useNavigate } from "react-router-dom"
 import whatsappIcon from "../assets/whatsapp_icone.png"
@@ -13,12 +13,8 @@ import {
     Bot,
     ChevronRight,
     CircleAlert,
-    ClipboardList,
-    LayoutDashboard,
-    LogOut,
     Pencil,
     Search,
-    Settings,
     TrendingUp,
     UserPlus,
     Users,
@@ -31,7 +27,6 @@ import {
     useState,
 } from "react"
 
-import { BrandLogo } from "../components/BrandLogo"
 
 import {
     getCurrentDate,
@@ -313,124 +308,23 @@ export function ProfessionalDashboard() {
 
 
     return (
-        <div className="min-h-screen bg-[#f8faf9] text-neutral-950">
+        <ProfessionalLayout
+            active="overview"
+            title="Visão geral"
+            userName={user?.nome}
+            breadcrumbs={[
+                { label: "Workspace" },
+                { label: "Visão geral" },
+            ]}
+        >
 
-            <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-neutral-200 bg-white lg:flex lg:flex-col">
+            <section className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-gradient-to-br from-white via-white to-emerald-50/70 p-6 shadow-[0_18px_55px_rgba(15,118,110,0.07)] sm:p-7 lg:p-8">
+                <div
+                    aria-hidden="true"
+                    className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-emerald-100/60 blur-3xl"
+                />
 
-                <div className="px-7 py-7">
-                    <BrandLogo />
-                </div>
-
-                <nav className="mt-4 flex-1 px-4">
-
-                    <div className="space-y-2">
-
-                        <button className="flex w-full items-center gap-3 rounded-2xl bg-neutral-950 px-4 py-3 text-left text-sm font-medium text-white">
-                            <LayoutDashboard size={19} />
-                            Visão geral
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => navigate("/professional/patients")}
-                            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
-                        >
-                            <Users size={19} />
-                            Pacientes
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => navigate("/professional/reports")}
-                            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
-                        >
-                            <ClipboardList size={19} />
-                            Relatórios
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => navigate("/professional/insights")}
-                            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
-                        >
-                            <Bot size={19} />
-                            Insights de IA
-                        </button>
-
-                    </div>
-
-                    <div className="my-6 border-t border-neutral-200" />
-
-                    <div className="space-y-2">
-
-                        <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950">
-                            <Settings size={19} />
-                            Configurações
-                        </button>
-
-                    </div>
-
-                </nav>
-
-                <div className="border-t border-neutral-200 p-4">
-
-                    <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950">
-                        <LogOut size={19} />
-                        Sair
-                    </button>
-
-                </div>
-
-            </aside>
-
-
-            <main className="lg:ml-64">
-
-                <header className="flex h-20 items-center justify-between border-b border-neutral-200 bg-white px-6 lg:px-10">
-
-                    <div>
-
-                        <p className="text-sm text-neutral-500">
-                            NutriWarrior Professional
-                        </p>
-
-                        <h1 className="text-xl font-semibold tracking-tight">
-                            Painel do Nutricionista
-                        </h1>
-
-                    </div>
-
-
-                    <div className="flex items-center gap-4">
-
-                        <NotificationBell />
-
-
-                        <div className="hidden text-right sm:block">
-
-                            <p className="text-sm font-semibold">
-                                {user?.nome ?? "Nutricionista"}
-                            </p>
-
-                            <p className="text-xs text-neutral-500">
-                                Plano Professional
-                            </p>
-
-                        </div>
-
-
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-950 text-sm font-semibold text-white">
-                            {getInitials(user?.nome)}
-                        </div>
-
-                    </div>
-
-                </header>
-
-
-                <div className="mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
-
-                    <section className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+                <div className="relative flex flex-col justify-between gap-6 md:flex-row md:items-end">
 
                         <div>
 
@@ -459,9 +353,10 @@ export function ProfessionalDashboard() {
                             Novo paciente
                         </button>
 
-                    </section>
+                </div>
+            </section>
 
-                    <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 
                         <MetricCard
                             icon={Users}
@@ -501,7 +396,7 @@ export function ProfessionalDashboard() {
 
                     <section className="mt-8 grid gap-6 xl:grid-cols-[1.6fr_0.8fr]">
 
-                        <div className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-sm">
+                        <div className="rounded-[30px] border border-neutral-200/80 bg-white p-6 shadow-[0_14px_40px_rgba(15,23,42,0.045)]">
 
                             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
 
@@ -920,11 +815,8 @@ export function ProfessionalDashboard() {
 
                     </section>
 
-                </div>
-
-                <AgendaOverview />
-                <FollowUpPanel />
-            </main>
+            <AgendaOverview />
+            <FollowUpPanel />
 
             {(newPatientModalOpen || patientToEdit !== null) && <NewPatientModal
                 key={patientToEdit?.clienteId ?? "new"}
@@ -954,7 +846,7 @@ export function ProfessionalDashboard() {
                 }}
             />
 
-        </div>
+        </ProfessionalLayout>
     )
 }
 
@@ -977,7 +869,7 @@ function MetricCard({
     alert = false,
 }: MetricCardProps) {
     return (
-        <div className="rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm">
+        <div className="group rounded-[24px] border border-neutral-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition duration-200 hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-[0_16px_34px_rgba(15,118,110,0.08)]">
 
             <div className="flex items-center justify-between">
 
@@ -993,7 +885,7 @@ function MetricCard({
                 </div>
 
 
-                <span className="text-xs text-neutral-400">
+                <span className="rounded-full bg-neutral-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
                     dados atuais
                 </span>
 
@@ -1004,7 +896,7 @@ function MetricCard({
                 {label}
             </p>
 
-            <p className="mt-1 text-3xl font-semibold tracking-tight">
+            <p className="mt-1 text-3xl font-semibold tracking-tight text-neutral-950">
                 {value}
             </p>
 

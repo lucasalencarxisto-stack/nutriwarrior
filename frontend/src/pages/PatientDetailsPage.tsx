@@ -1,8 +1,7 @@
 import { PatientSections } from "../components/PatientSections"
 import { PatientQuickActions } from "../components/PatientQuickActions"
+import { ProfessionalLayout } from "../components/ProfessionalLayout"
 import {
-
-    ArrowLeft,
 
     Mail,
 
@@ -45,6 +44,8 @@ import {
 } from "../components/PatientEvolutionPreview"
 
 
+
+import { getMe } from "../services/auth"
 
 import {
 
@@ -656,6 +657,15 @@ export function PatientDetailsPage() {
 
 
 
+    const [
+        professionalName,
+        setProfessionalName,
+    ] = useState<string | undefined>(
+        undefined,
+    )
+
+
+
     const latestWeightRecord =
 
         dayRecords
@@ -809,6 +819,14 @@ export function PatientDetailsPage() {
             },
         )
     }
+
+    useEffect(() => {
+        getMe()
+            .then(me => setProfessionalName(me.nome))
+            .catch(() => setProfessionalName(undefined))
+    }, [])
+
+
 
     useEffect(
 
@@ -1102,7 +1120,7 @@ export function PatientDetailsPage() {
 
                             navigate(
 
-                                "/professional",
+                                "/professional/patients",
 
                             )
 
@@ -1134,65 +1152,22 @@ export function PatientDetailsPage() {
 
     return (
 
-        <div className="min-h-screen bg-[#f8faf9] text-neutral-950">
+        <ProfessionalLayout
+            active="patients"
+            title={patient.nome}
+            userName={professionalName}
+            breadcrumbs={[
+                { label: "Workspace", href: "/professional" },
+                { label: "Pacientes", href: "/professional/patients" },
+                { label: patient.nome },
+            ]}
+        >
 
-
-
-            <header className="border-b border-neutral-200 bg-white">
-
-
-
-                <div className="mx-auto flex h-20 max-w-[1280px] items-center px-6 lg:px-10">
-
-
-
-                    <button
-
-                        type="button"
-
-                        onClick={() =>
-
-                            navigate(
-
-                                "/professional",
-
-                            )
-
-                        }
-
-                        className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
-
-                    >
-
-                        <ArrowLeft
-
-                            size={18}
-
-                        />
-
-
-
-                        Voltar
-
-                    </button>
-
-
-
-                </div>
-
-
-
-            </header>
-
-
-
-
-
-            <main className="mx-auto max-w-[1280px] px-6 py-10 lg:px-10">
-
-
-
-                <div className="rounded-[30px] border border-neutral-200 bg-white p-7 shadow-sm lg:p-9">
+                <div className="relative overflow-hidden rounded-[32px] border border-emerald-100 bg-gradient-to-br from-white via-white to-emerald-50/70 p-7 shadow-[0_18px_55px_rgba(15,118,110,0.07)] lg:p-9">
+                    <div
+                        aria-hidden="true"
+                        className="absolute -right-16 -top-20 h-56 w-56 rounded-full bg-emerald-100/70 blur-3xl"
+                    />
 
 
 
@@ -1204,7 +1179,7 @@ export function PatientDetailsPage() {
 
 
 
-                            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xl font-semibold text-white">
+                            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-[24px] bg-gradient-to-br from-neutral-950 to-neutral-700 text-xl font-semibold text-white shadow-lg shadow-neutral-950/10">
 
 
 
@@ -1398,11 +1373,11 @@ export function PatientDetailsPage() {
 
 
 
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-3 rounded-[22px] border border-neutral-100 bg-white/70 p-2 shadow-sm backdrop-blur">
 
 
 
-                            <div className="min-w-32 rounded-2xl bg-neutral-50 px-5 py-4">
+                            <div className="min-w-32 rounded-2xl bg-neutral-50/90 px-5 py-4">
 
 
 
@@ -1428,7 +1403,7 @@ export function PatientDetailsPage() {
 
 
 
-                            <div className="min-w-32 rounded-2xl bg-neutral-50 px-5 py-4">
+                            <div className="min-w-32 rounded-2xl bg-neutral-50/90 px-5 py-4">
 
 
 
@@ -1708,11 +1683,7 @@ export function PatientDetailsPage() {
 
 
                 </PatientSections>
-            </main>
-
-
-
-        </div>
+        </ProfessionalLayout>
 
     )
 
