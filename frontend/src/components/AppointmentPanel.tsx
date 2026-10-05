@@ -7,6 +7,11 @@ import {
   type Appointment,
   type AppointmentStatus,
 } from "../services/clinical"
+import {
+  formatScheduleDateTime,
+  ScheduleDatePicker,
+  ScheduleTimePicker,
+} from "./SchedulePicker"
 
 const statusLabel: Record<AppointmentStatus, string> = {
   SCHEDULED: "Agendado",
@@ -17,7 +22,8 @@ const statusLabel: Record<AppointmentStatus, string> = {
 
 export function AppointmentPanel({ clienteId }: { clienteId: number }) {
   const [rows, setRows] = useState<Appointment[]>([])
-  const [startsAt, setStartsAt] = useState("")
+  const [appointmentDate, setAppointmentDate] = useState("")
+  const [appointmentTime, setAppointmentTime] = useState("")
   const [notes, setNotes] = useState("")
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
@@ -42,17 +48,24 @@ export function AppointmentPanel({ clienteId }: { clienteId: number }) {
 
   async function create(event: FormEvent) {
     event.preventDefault()
-    if (!startsAt || busy) return
+    if (!appointmentDate || !appointmentTime || busy) return
     setBusy(true)
     setError("")
     try {
+      const startsAt = new Date(`${appointmentDate}T${appointmentTime}:00`)
+
+      if (Number.isNaN(startsAt.getTime())) {
+        throw new Error("Confira a data e o horário da consulta.")
+      }
+
       const saved = await createAppointment(clienteId, {
-        startsAt: new Date(startsAt).toISOString(),
+        startsAt: startsAt.toISOString(),
         status: "SCHEDULED",
         notes,
       })
       setRows(current => [...current, saved].sort((a, b) => a.startsAt.localeCompare(b.startsAt)))
-      setStartsAt("")
+      setAppointmentDate("")
+      setAppointmentTime("")
       setNotes("")
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Falha ao agendar consulta.")
@@ -90,26 +103,46 @@ export function AppointmentPanel({ clienteId }: { clienteId: number }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Agenda</p>
       <h3 className="mt-2 font-semibold">Consultas agendadas</h3>
 
-      <form onSubmit={create} className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
-        <input
-          type="datetime-local"
-          required
-          value={startsAt}
-          onChange={event => setStartsAt(event.target.value)}
-          className="min-w-0 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
-        />
-        <input
-          value={notes}
-          onChange={event => setNotes(event.target.value)}
-          maxLength={4000}
-          placeholder="Observação opcional"
-          className="min-w-0 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
-        />
+      <form
+        onSubmit={create}
+        className="mt-4 rounded-2xl bg-neutral-50 p-4"
+      >
+        <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_160px]">
+          <ScheduleDatePicker
+            id="appointment-date"
+            label="Data da consulta"
+            value={appointmentDate}
+            onChange={setAppointmentDate}
+            required
+            disabled={busy}
+          />
+
+          <ScheduleTimePicker
+            id="appointment-time"
+            label="Horário"
+            value={appointmentTime}
+            onChange={setAppointmentTime}
+            required
+            disabled={busy}
+          />
+        </div>
+
+        <label className="mt-3 block text-xs font-medium text-neutral-500">
+          Observação
+          <input
+            value={notes}
+            onChange={event => setNotes(event.target.value)}
+            maxLength={4000}
+            placeholder="Ex.: retorno para revisão do plano alimentar"
+            className="mt-1.5 w-full rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-100"
+          />
+        </label>
+
         <button
-          disabled={busy}
-          className="rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:col-span-2 sm:justify-self-start"
+          disabled={busy || !appointmentDate || !appointmentTime}
+          className="mt-4 rounded-xl bg-neutral-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-40"
         >
-          Agendar
+          {busy ? "Agendando…" : "Agendar consulta"}
         </button>
       </form>
 
@@ -123,7 +156,7 @@ export function AppointmentPanel({ clienteId }: { clienteId: number }) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="text-sm font-semibold">
-                    {new Date(item.startsAt).toLocaleString("pt-BR")}
+                    {formatScheduleDateTime(item.startsAt)}
                   </p>
                   {item.notes && <p className="mt-1 text-xs text-neutral-500">{item.notes}</p>}
                 </div>
