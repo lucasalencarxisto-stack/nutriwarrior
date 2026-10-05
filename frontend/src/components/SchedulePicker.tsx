@@ -62,6 +62,40 @@ function isDateDisabled(value: string, min?: string, max?: string) {
   return (min != null && value < min) || (max != null && value > max)
 }
 
+function formatIsoForManualInput(value: string) {
+  const date = fromIsoDate(value)
+  return date ? date.toLocaleDateString("pt-BR") : ""
+}
+
+function maskManualDate(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 8)
+
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
+}
+
+function parseManualDate(value: string) {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value)
+  if (!match) return null
+
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const date = new Date(year, month - 1, day, 12, 0, 0, 0)
+
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null
+  }
+
+  return toIsoDate(date)
+}
+
 export function formatScheduleDateTime(value: string) {
   const date = new Date(value)
 
@@ -89,9 +123,17 @@ export function ScheduleDatePicker({
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
   const [visibleMonth, setVisibleMonth] = useState(() => monthStartFor(value))
+  const [manualValue, setManualValue] = useState(() =>
+    value ? formatIsoForManualInput(value) : "",
+  )
+  const [manualError, setManualError] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    setManualValue(value ? formatIsoForManualInput(value) : "")
+    setManualError(false)
+    inputRef.current?.setCustomValidity("")
     if (value) setVisibleMonth(monthStartFor(value))
   }, [value])
 
@@ -143,11 +185,45 @@ export function ScheduleDatePicker({
     year: "numeric",
   }).format(visibleMonth)
 
-  const selectedDate = value ? fromIsoDate(value) : null
-  const displayValue = selectedDate
-    ? selectedDate.toLocaleDateString("pt-BR")
-    : "Selecionar data"
   const today = toIsoDate(new Date())
+
+  function commitManualDate(nextValue: string) {
+    const masked = maskManualDate(nextValue)
+    setManualValue(masked)
+
+    if (!masked) {
+      setManualError(false)
+      inputRef.current?.setCustomValidity("")
+      onChange("")
+      return
+    }
+
+    const parsed = parseManualDate(masked)
+
+    if (!parsed) {
+      const complete = masked.length === 10
+      setManualError(complete)
+      inputRef.current?.setCustomValidity(
+        complete
+          ? "Informe uma data válida."
+          : "Complete a data no formato dd/mm/aaaa.",
+      )
+      return
+    }
+
+    if (isDateDisabled(parsed, min, max)) {
+      setManualError(true)
+      inputRef.current?.setCustomValidity(
+        "A data informada está fora do período permitido.",
+      )
+      return
+    }
+
+    setManualError(false)
+    inputRef.current?.setCustomValidity("")
+    onChange(parsed)
+    setVisibleMonth(monthStartFor(parsed))
+  }
 
   function changeMonth(offset: number) {
     setVisibleMonth(
@@ -167,30 +243,85 @@ export function ScheduleDatePicker({
   return (
     <div ref={rootRef} className="relative min-w-0">
       <label
-        id={`${id}-label`}
+        htmlFor={id}
         className="mb-1.5 block text-xs font-medium text-neutral-500"
       >
         {label}
       </label>
 
-      <button
-        id={id}
-        type="button"
-        disabled={disabled}
-        aria-labelledby={`${id}-label`}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-required={required}
-        onClick={() => setOpen(current => !current)}
-        className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-left text-sm transition hover:border-neutral-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+      <div
+        className={[
+          "flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border bg-white px-3 py-2 transition focus-within:outline-2 focus-within:outline-offset-2",
+          manualError
+            ? "border-red-300 focus-within:outline-red-500"
+            : "border-neutral-200 focus-within:outline-emerald-600",
+          disabled ? "opacity-50" : "",
+        ].join(" ")}
       >
-        <CalendarDays size={17} className="shrink-0 text-teal-700" aria-hidden="true" />
-        <span className={value ? "truncate text-neutral-950" : "truncate text-neutral-400"}>
-          {displayValue}
-        </span>
-      </button>
+        <input
+          ref={inputRef}
+          id={id}
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          required={required}
+          disabled={disabled}
+          value={manualValue}
+          onChange={event => commitManualDate(event.target.value)}
+          onBlur={() => {
+            if (!manualValue) {
+              setManualError(false)
+              inputRef.current?.setCustomValidity("")
+              return
+            }
 
-      {hint && <p className="mt-1.5 text-xs text-neutral-500">{hint}</p>}
+            const parsed = parseManualDate(manualValue)
+            const invalid =
+              parsed == null || isDateDisabled(parsed, min, max)
+
+            setManualError(invalid)
+            inputRef.current?.setCustomValidity(
+              invalid
+                ? "Informe uma data válida no formato dd/mm/aaaa."
+                : "",
+            )
+          }}
+          placeholder="dd/mm/aaaa"
+          aria-invalid={manualError}
+          aria-describedby={
+            manualError
+              ? `${id}-error`
+              : hint
+                ? `${id}-hint`
+                : undefined
+          }
+          className="min-w-0 flex-1 bg-transparent text-sm text-neutral-950 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed"
+        />
+
+        <button
+          type="button"
+          disabled={disabled}
+          aria-label={`Abrir calendário de ${label.toLowerCase()}`}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          onClick={() => setOpen(current => !current)}
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-teal-700 transition hover:bg-teal-50 focus-visible:outline-2 focus-visible:outline-emerald-600 disabled:cursor-not-allowed"
+        >
+          <CalendarDays size={17} aria-hidden="true" />
+        </button>
+      </div>
+
+      {manualError && (
+        <p id={`${id}-error`} className="mt-1.5 text-xs text-red-600">
+          Informe uma data válida no formato dd/mm/aaaa.
+        </p>
+      )}
+
+      {!manualError && hint && (
+        <p id={`${id}-hint`} className="mt-1.5 text-xs text-neutral-500">
+          {hint}
+        </p>
+      )}
 
       {open && !disabled && (
         <div
@@ -246,6 +377,9 @@ export function ScheduleDatePicker({
                   disabled={unavailable}
                   onClick={() => {
                     onChange(iso)
+                    setManualValue(formatIsoForManualInput(iso))
+                    setManualError(false)
+                    inputRef.current?.setCustomValidity("")
                     setOpen(false)
                   }}
                   className={[
@@ -274,6 +408,9 @@ export function ScheduleDatePicker({
                 type="button"
                 onClick={() => {
                   onChange("")
+                  setManualValue("")
+                  setManualError(false)
+                  inputRef.current?.setCustomValidity("")
                   setOpen(false)
                 }}
                 className="text-xs font-semibold text-neutral-500 hover:text-neutral-950"
@@ -289,6 +426,9 @@ export function ScheduleDatePicker({
               onClick={() => {
                 if (!isDateDisabled(today, min, max)) {
                   onChange(today)
+                  setManualValue(formatIsoForManualInput(today))
+                  setManualError(false)
+                  inputRef.current?.setCustomValidity("")
                   setOpen(false)
                 }
               }}
