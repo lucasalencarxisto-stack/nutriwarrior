@@ -153,7 +153,7 @@ export function PatientDashboard() {
           )}
         </section>
 
-        {patient && !error && <AssistantPanel key={patient.clienteId} clienteId={patient.clienteId} />}
+        {patient && !error && <AssistantPanel\n          key={patient.clienteId}\n          clienteId={patient.clienteId}\n          patientName={patient.nome}\n        />}
       </div>
     </main>
   )
