@@ -128,10 +128,12 @@ export function ScheduleDatePicker({
   )
   const [manualError, setManualError] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setManualValue(value ? formatIsoForManualInput(value) : "")
     setManualError(false)
+    inputRef.current?.setCustomValidity("")
     if (value) setVisibleMonth(monthStartFor(value))
   }, [value])
 
@@ -191,6 +193,7 @@ export function ScheduleDatePicker({
 
     if (!masked) {
       setManualError(false)
+      inputRef.current?.setCustomValidity("")
       onChange("")
       return
     }
@@ -198,18 +201,26 @@ export function ScheduleDatePicker({
     const parsed = parseManualDate(masked)
 
     if (!parsed) {
-      onChange("")
-      setManualError(masked.length === 10)
+      const complete = masked.length === 10
+      setManualError(complete)
+      inputRef.current?.setCustomValidity(
+        complete
+          ? "Informe uma data válida."
+          : "Complete a data no formato dd/mm/aaaa.",
+      )
       return
     }
 
     if (isDateDisabled(parsed, min, max)) {
-      onChange("")
       setManualError(true)
+      inputRef.current?.setCustomValidity(
+        "A data informada está fora do período permitido.",
+      )
       return
     }
 
     setManualError(false)
+    inputRef.current?.setCustomValidity("")
     onChange(parsed)
     setVisibleMonth(monthStartFor(parsed))
   }
@@ -248,6 +259,7 @@ export function ScheduleDatePicker({
         ].join(" ")}
       >
         <input
+          ref={inputRef}
           id={id}
           type="text"
           inputMode="numeric"
@@ -259,12 +271,19 @@ export function ScheduleDatePicker({
           onBlur={() => {
             if (!manualValue) {
               setManualError(false)
+              inputRef.current?.setCustomValidity("")
               return
             }
 
             const parsed = parseManualDate(manualValue)
-            setManualError(
-              parsed == null || isDateDisabled(parsed, min, max),
+            const invalid =
+              parsed == null || isDateDisabled(parsed, min, max)
+
+            setManualError(invalid)
+            inputRef.current?.setCustomValidity(
+              invalid
+                ? "Informe uma data válida no formato dd/mm/aaaa."
+                : "",
             )
           }}
           placeholder="dd/mm/aaaa"
@@ -360,6 +379,7 @@ export function ScheduleDatePicker({
                     onChange(iso)
                     setManualValue(formatIsoForManualInput(iso))
                     setManualError(false)
+                    inputRef.current?.setCustomValidity("")
                     setOpen(false)
                   }}
                   className={[
@@ -390,6 +410,7 @@ export function ScheduleDatePicker({
                   onChange("")
                   setManualValue("")
                   setManualError(false)
+                  inputRef.current?.setCustomValidity("")
                   setOpen(false)
                 }}
                 className="text-xs font-semibold text-neutral-500 hover:text-neutral-950"
@@ -407,6 +428,7 @@ export function ScheduleDatePicker({
                   onChange(today)
                   setManualValue(formatIsoForManualInput(today))
                   setManualError(false)
+                  inputRef.current?.setCustomValidity("")
                   setOpen(false)
                 }
               }}
