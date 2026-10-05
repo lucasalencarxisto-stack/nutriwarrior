@@ -16,9 +16,7 @@ export function ClinicalWorkspaceHub({
   initialTags,
   records,
   summaries,
-  heightCm,
   currentWeight,
-  age,
   targetWeight,
 }: {
   clienteId: number
@@ -26,9 +24,7 @@ export function ClinicalWorkspaceHub({
   initialTags?: string[]
   records: DayRecord[]
   summaries: NutritionSummary[]
-  heightCm?: number | null
   currentWeight: number | null
-  age: number | null
   targetWeight?: number | null
 }) {
   const location = useLocation()
@@ -46,9 +42,7 @@ export function ClinicalWorkspaceHub({
         clienteId={clienteId}
         records={records}
         summaries={summaries}
-        heightCm={heightCm}
         currentWeight={currentWeight}
-        age={age}
       />
 
       <div className="grid gap-6 xl:grid-cols-2">
