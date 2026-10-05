@@ -46,11 +46,13 @@ type ChatMessage = {
   discarded?: boolean
 }
 
+type AttachmentKind = "image" | "pdf" | "txt"
+
 type AttachmentPreview = {
   id: string
   name: string
   size: number
-  kind: "image" | "pdf" | "txt"
+  kind: AttachmentKind
 }
 
 const moodIcons: Record<AssistantMood, string> = {
@@ -106,7 +108,7 @@ function inferMood(reply: Reply): AssistantMood {
   return "default"
 }
 
-function attachmentKind(file: File): AttachmentPreview["kind"] | null {
+function attachmentKind(file: File): AttachmentKind | null {
   const lower = file.name.toLowerCase()
 
   if (
@@ -127,7 +129,7 @@ function attachmentKind(file: File): AttachmentPreview["kind"] | null {
   return null
 }
 
-function attachmentAsset(kind: AttachmentPreview["kind"]) {
+function attachmentAsset(kind: AttachmentKind) {
   if (kind === "pdf") return pdfIcon
   if (kind === "txt") return txtIcon
   return imageIcon
@@ -141,12 +143,12 @@ function formatBytes(bytes: number) {
 
 function AssistantAvatar({ mood = "default" }: { mood?: AssistantMood }) {
   return (
-    <div className="mb-1 h-10 w-10 shrink-0 overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-emerald-100">
+    <div className="mb-1 h-10 w-10 shrink-0 overflow-hidden rounded-full bg-transparent">
       <img
         src={moodIcons[mood]}
         alt=""
         aria-hidden="true"
-        className="h-full w-full object-cover"
+        className="h-full w-full scale-[0.94] object-contain"
       />
     </div>
   )
@@ -165,6 +167,7 @@ export function AssistantPanel({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [attachmentError, setAttachmentError] = useState("")
+  const [attachmentMenuOpen, setAttachmentMenuOpen] = useState(false)
   const running = useRef(false)
   const formRef = useRef<HTMLFormElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
@@ -351,6 +354,21 @@ export function AssistantPanel({
   function removeAttachment(id: string) {
     setAttachments(current => current.filter(item => item.id !== id))
     setAttachmentError("")
+  }
+
+  function openAttachmentPicker(kind: AttachmentKind) {
+    const input = fileInputRef.current
+    if (!input) return
+
+    input.accept =
+      kind === "image"
+        ? ".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+        : kind === "pdf"
+          ? ".pdf,application/pdf"
+          : ".txt,text/plain"
+
+    setAttachmentMenuOpen(false)
+    input.click()
   }
 
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -567,32 +585,89 @@ export function AssistantPanel({
             </div>
           )}
 
-          <div className="flex items-end gap-2 rounded-[22px] border border-neutral-200 bg-neutral-50 p-2 transition focus-within:border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-100">
+          <div className="relative flex items-end gap-2 rounded-[22px] border border-neutral-200 bg-neutral-50 p-2 transition focus-within:border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-100">
             <input
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,image/png,image/jpeg,image/webp,application/pdf,text/plain"
               onChange={handleAttachmentChange}
               className="hidden"
               aria-label="Selecionar anexos"
             />
 
-            <button
-              type="button"
-              aria-label="Anexar arquivo"
-              title="Anexar arquivo"
-              disabled={busy || pendingConfirmation}
-              onClick={() => fileInputRef.current?.click()}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <img
-                src={attachmentIcon}
-                alt=""
-                aria-hidden="true"
-                className="h-7 w-7 object-contain"
-              />
-            </button>
+            <div className="relative shrink-0">
+              {attachmentMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Tipo de anexo"
+                  className="absolute bottom-[calc(100%+12px)] left-0 z-20 w-64 rounded-2xl border border-emerald-100 bg-white p-2 shadow-[0_16px_45px_rgba(15,23,42,0.16)]"
+                >
+                  <p className="px-2 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                    Escolha o tipo de anexo
+                  </p>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => openAttachmentPicker("image")}
+                    className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition hover:bg-emerald-50"
+                  >
+                    <img src={imageIcon} alt="" aria-hidden="true" className="h-10 w-10 object-contain" />
+                    <span>
+                      <span className="block text-sm font-semibold text-neutral-800">Imagem</span>
+                      <span className="block text-[11px] text-neutral-400">PNG, JPG ou WEBP</span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => openAttachmentPicker("pdf")}
+                    className="mt-1 flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition hover:bg-emerald-50"
+                  >
+                    <img src={pdfIcon} alt="" aria-hidden="true" className="h-10 w-10 object-contain" />
+                    <span>
+                      <span className="block text-sm font-semibold text-neutral-800">PDF</span>
+                      <span className="block text-[11px] text-neutral-400">Documento em PDF</span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => openAttachmentPicker("txt")}
+                    className="mt-1 flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left transition hover:bg-emerald-50"
+                  >
+                    <img src={txtIcon} alt="" aria-hidden="true" className="h-10 w-10 object-contain" />
+                    <span>
+                      <span className="block text-sm font-semibold text-neutral-800">TXT</span>
+                      <span className="block text-[11px] text-neutral-400">Arquivo de texto simples</span>
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              <button
+                type="button"
+                aria-label="Anexar arquivo"
+                aria-haspopup="menu"
+                aria-expanded={attachmentMenuOpen}
+                title="Anexar arquivo"
+                disabled={busy || pendingConfirmation}
+                onClick={() => setAttachmentMenuOpen(open => !open)}
+                className={[
+                  "grid h-11 w-11 place-items-center rounded-xl transition disabled:cursor-not-allowed disabled:opacity-40",
+                  attachmentMenuOpen ? "bg-white shadow-sm" : "hover:bg-white",
+                ].join(" ")}
+              >
+                <img
+                  src={attachmentIcon}
+                  alt=""
+                  aria-hidden="true"
+                  className="h-7 w-7 object-contain"
+                />
+              </button>
+            </div>
 
             <textarea
               required
