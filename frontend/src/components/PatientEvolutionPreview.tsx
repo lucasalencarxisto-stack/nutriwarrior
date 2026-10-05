@@ -977,6 +977,18 @@ export function PatientEvolutionPreview({
 
 
 
+  const goalColor =
+
+    "#e5484d"
+
+
+
+  const goalBadgeBackground =
+
+    "#fff1f2"
+
+
+
   const proteinColor =
 
     "#10b981"
@@ -3058,102 +3070,130 @@ export function PatientEvolutionPreview({
 
                       <line
 
-                        x1={
+                        x1={chartLeft}
 
-                          chartLeft
+                        x2={chartRight - 148}
 
-                        }
+                        y1={getY(scalarGoal)}
 
-                        x2={
+                        y2={getY(scalarGoal)}
 
-                          chartRight
+                        stroke={goalColor}
 
-                        }
+                        strokeWidth="1.5"
 
-                        y1={
-
-                          getY(
-
-                            scalarGoal,
-
-                          )
-
-                        }
-
-                        y2={
-
-                          getY(
-
-                            scalarGoal,
-
-                          )
-
-                        }
-
-                        stroke={
-                          selectedMetric === "peso"
-                            ? "#dc2626"
-                            : "#e69e5a"
-                        }
-
-                        strokeDasharray="8 6"
-
-                        strokeWidth={
-                          selectedMetric === "peso"
-                            ? "2"
-                            : "1.5"
-                        }
-
-                        opacity={
-                          selectedMetric === "peso"
-                            ? "0.9"
-                            : "0.7"
-                        }
+                        opacity="0.85"
 
                       />
 
 
 
-                      <text
+                      <circle
 
-                        x={
+                        cx={chartRight - 148}
 
-                          chartRight -
+                        cy={getY(scalarGoal)}
 
-                          4
+                        r="3.5"
 
-                        }
+                        fill={goalColor}
 
-                        y={
+                      />
 
-                          getY(
 
-                            scalarGoal,
 
-                          ) -
+                      <g
 
-                          7
-
-                        }
-
-                        textAnchor="end"
-
-                        fontSize="12"
-
-                        fill={
-                          selectedMetric === "peso"
-                            ? "#b91c1c"
-                            : "#ce671e"
-                        }
-                        fontWeight="700"
+                        transform={`translate(${chartRight - 140} ${getY(scalarGoal) - 17})`}
 
                       >
-                        {`Meta ${formatNumber(
-                          scalarGoal,
-                          selectedMetric,
-                        )} ${unit}`}
 
-                      </text>
+                        <rect
+
+                          width="140"
+
+                          height="34"
+
+                          rx="17"
+
+                          fill={goalBadgeBackground}
+
+                        />
+
+
+
+                        <circle
+
+                          cx="18"
+
+                          cy="17"
+
+                          r="7.5"
+
+                          fill="none"
+
+                          stroke={goalColor}
+
+                          strokeWidth="2"
+
+                        />
+
+
+
+                        <circle
+
+                          cx="18"
+
+                          cy="17"
+
+                          r="3.5"
+
+                          fill="none"
+
+                          stroke={goalColor}
+
+                          strokeWidth="2"
+
+                        />
+
+
+
+                        <circle
+
+                          cx="18"
+
+                          cy="17"
+
+                          r="1.5"
+
+                          fill={goalColor}
+
+                        />
+
+
+
+                        <text
+
+                          x="34"
+
+                          y="21"
+
+                          fontSize="12"
+
+                          fontWeight="600"
+
+                          fill={goalColor}
+
+                        >
+
+                          {`Meta ${formatNumber(
+                            scalarGoal,
+                            selectedMetric,
+                          )} ${unit}`}
+
+                        </text>
+
+                      </g>
 
 
 
