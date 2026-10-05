@@ -683,23 +683,7 @@ export function PatientEvolutionPreview({
 
     hydrationData.length > 0
 
-
-
-  const hasCalories =
-
-    caloriesData.length > 0
-
-
-
-  const hasMacros =
-
-    macroData.length > 0
-
-
-
-
-
-  const allScalarData =
+const allScalarData =
 
     selectedMetric ===
 
@@ -2584,14 +2568,7 @@ export function PatientEvolutionPreview({
                 "calorias"
 
               }
-
-              disabled={
-
-                !hasCalories
-
-              }
-
-              onClick={() =>
+onClick={() =>
 
                 changeMetric(
 
@@ -2608,12 +2585,6 @@ export function PatientEvolutionPreview({
                 ? "bg-amber-50 text-amber-700"
 
                 : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
-
-                } ${!hasCalories
-
-                  ? "cursor-not-allowed opacity-40"
-
-                  : ""
 
                 }`}
 
@@ -2638,14 +2609,7 @@ export function PatientEvolutionPreview({
                 "macronutrientes"
 
               }
-
-              disabled={
-
-                !hasMacros
-
-              }
-
-              onClick={() =>
+onClick={() =>
 
                 changeMetric(
 
@@ -2662,12 +2626,6 @@ export function PatientEvolutionPreview({
                 ? "bg-neutral-950 text-white"
 
                 : "bg-neutral-50 text-neutral-400 hover:text-neutral-600"
-
-                } ${!hasMacros
-
-                  ? "cursor-not-allowed opacity-40"
-
-                  : ""
 
                 }`}
 

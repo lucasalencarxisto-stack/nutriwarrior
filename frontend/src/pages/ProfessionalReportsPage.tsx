@@ -11,6 +11,7 @@ import {
   Weight,
 } from "lucide-react"
 import { BrandLogo } from "../components/BrandLogo"
+import { ReportBrandingControls } from "../components/ReportBrandingControls"
 import { ScheduleDatePicker } from "../components/SchedulePicker"
 import { ProfessionalLayout } from "../components/ProfessionalLayout"
 import { ReportPreviewSkeleton } from "../components/Skeleton"
@@ -23,6 +24,10 @@ import {
 } from "../services/nutrition"
 import { getMe } from "../services/auth"
 import { getMyPatients, type Patient } from "../services/patients"
+import {
+  loadReportBranding,
+  saveReportBranding,
+} from "../utils/reportBranding"
 
 type ProfessionalUser = {
   id: number
@@ -143,6 +148,15 @@ export function ProfessionalReportsPage() {
   const [report, setReport] = useState<ReportData | null>(null)
   const [loadingReport, setLoadingReport] = useState(false)
   const [error, setError] = useState("")
+  const [branding, setBranding] = useState(loadReportBranding)
+
+  useEffect(() => {
+    try {
+      saveReportBranding(branding)
+    } catch {
+      // Mantém a personalização ativa nesta sessão se o armazenamento falhar.
+    }
+  }, [branding])
 
   useEffect(() => {
     let alive = true
@@ -174,6 +188,19 @@ export function ProfessionalReportsPage() {
 
   const selectedPatient =
     patients.find(patient => patient.clienteId === selectedPatientId) ?? null
+
+  const hasCustomReportBrand = Boolean(
+    branding.text.trim() || branding.logoDataUrl,
+  )
+
+  const reportBrandTextStyle = {
+    color: branding.color,
+    fontWeight: branding.bold ? 700 : 500,
+    fontStyle: branding.italic ? "italic" : "normal",
+    textDecoration: branding.underline ? "underline" : "none",
+    fontSize: `${branding.fontSize}px`,
+    lineHeight: 1.15,
+  } as const
 
   async function generateReport() {
     if (!selectedPatient?.clienteId) {
@@ -438,6 +465,11 @@ export function ProfessionalReportsPage() {
           })}
         </div>
 
+        <ReportBrandingControls
+          branding={branding}
+          onChange={setBranding}
+        />
+
         {error && (
           <p role="alert" className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
             {error}
@@ -481,9 +513,30 @@ export function ProfessionalReportsPage() {
           <div className="border-b border-neutral-100 bg-gradient-to-r from-emerald-50/70 via-white to-white px-6 py-6 sm:px-8 print:bg-white">
             <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
               <div>
-                <div className="w-40">
-                  <BrandLogo />
-                </div>
+                {hasCustomReportBrand ? (
+                  <div className="flex min-h-16 items-center gap-4">
+                    {branding.logoDataUrl && (
+                      <img
+                        src={branding.logoDataUrl}
+                        alt="Logo do profissional ou clínica"
+                        className="max-h-16 max-w-44 object-contain"
+                      />
+                    )}
+
+                    {branding.text.trim() && (
+                      <div
+                        style={reportBrandTextStyle}
+                        className="max-w-xl whitespace-pre-wrap"
+                      >
+                        {branding.text}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="w-40">
+                    <BrandLogo />
+                  </div>
+                )}
                 <p className="mt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
                   Relatório profissional
                 </p>
