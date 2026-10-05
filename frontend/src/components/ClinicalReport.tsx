@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { formatScheduleDateTime } from "./SchedulePicker"
 import { getCareHistory, type CareRecord } from "../services/care"
 import { getNextAppointment, type Appointment } from "../services/clinical"
 import type { DayRecord } from "../services/days"
@@ -72,7 +73,7 @@ small{color:#666}.meal{border:1px solid #ddd;padding:12px;margin:8px 0;border-ra
 <div class="grid" style="margin-top:20px">
 <div class="card"><small>Último peso</small><br><strong>${latestWeight?.pesoKg == null ? "—" : esc(latestWeight.pesoKg)+" kg"}</strong></div>
 <div class="card"><small>Peso-alvo</small><br><strong>${targetWeight == null ? "—" : esc(targetWeight)+" kg"}</strong></div>
-<div class="card"><small>Próxima consulta</small><br><strong>${appointment ? esc(new Date(appointment.startsAt).toLocaleString("pt-BR")) : "—"}</strong></div>
+<div class="card"><small>Próxima consulta</small><br><strong>${appointment ? esc(formatScheduleDateTime(appointment.startsAt)) : "—"}</strong></div>
 </div>
 <h2>Última consulta</h2>
 <p><strong>${esc(latestConsultation?.title ?? "Sem consulta registrada")}</strong></p>
