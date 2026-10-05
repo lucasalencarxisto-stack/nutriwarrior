@@ -1,6 +1,7 @@
 import { FollowUpPanel } from "../components/FollowUpPanel"
 import { AgendaOverview } from "../components/AgendaOverview"
 import { AssistantPanel } from "../components/AssistantPanel"
+import { DashboardTableSkeleton } from "../components/Skeleton"
 import { NotificationBell } from "../components/NotificationBell"
 import { NewPatientModal } from "../components/NewPatientModal"
 import { useNavigate } from "react-router-dom"
@@ -550,15 +551,7 @@ export function ProfessionalDashboard() {
 
 
                             {loadingPatients && (
-
-                                <div className="flex min-h-[280px] items-center justify-center">
-
-                                    <p className="text-sm text-neutral-500">
-                                        Carregando pacientes...
-                                    </p>
-
-                                </div>
-
+                                <DashboardTableSkeleton />
                             )}
 
 

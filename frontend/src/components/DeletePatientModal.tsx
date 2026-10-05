@@ -4,7 +4,9 @@ import {
   X,
 } from "lucide-react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+import { useToast } from "./ToastProvider"
 
 import {
   deletePatient,
@@ -27,11 +29,26 @@ export function DeletePatientModal({
   onClose,
   onDeleted,
 }: DeletePatientModalProps) {
+  const toast = useToast()
+
   const [loading, setLoading] =
     useState(false)
 
   const [error, setError] =
     useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && !loading) {
+        handleClose()
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape)
+    return () => window.removeEventListener("keydown", handleEscape)
+  }, [open, loading])
 
 
   if (!open) {
@@ -51,9 +68,9 @@ export function DeletePatientModal({
 
   async function handleDelete() {
     if (!clienteId) {
-      setError(
-        "Não foi possível identificar o paciente.",
-      )
+      const message = "Não foi possível identificar o paciente."
+      setError(message)
+      toast.error(message)
       return
     }
 
@@ -65,15 +82,18 @@ export function DeletePatientModal({
         clienteId,
       )
 
-     await onDeleted()
+      await onDeleted()
+      toast.success("Paciente removido da carteira.")
       onClose()
 
     } catch (err) {
-      setError(
+      const message =
         err instanceof Error
           ? err.message
-          : "Não foi possível deletar o paciente.",
-      )
+          : "Não foi possível deletar o paciente."
+
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }

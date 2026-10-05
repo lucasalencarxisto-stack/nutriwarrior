@@ -4,10 +4,11 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
-  type KeyboardEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from "react"
 import { Check, X } from "lucide-react"
 import { apiFetch } from "../services/api"
+import { useToast } from "./ToastProvider"
 import attachmentIcon from "../assets/anexo-icon.png"
 import chatBackground from "../assets/back-ground.png"
 import clarifyIcon from "../assets/clarefy-icone.png"
@@ -163,6 +164,7 @@ export function AssistantPanel({
   patientName?: string
   variant?: "default" | "compact"
 }) {
+  const toast = useToast()
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage])
   const [attachments, setAttachments] = useState<AttachmentPreview[]>([])
@@ -188,6 +190,19 @@ export function AssistantPanel({
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
   }, [messages, busy, error, attachments])
+
+  useEffect(() => {
+    if (!attachmentMenuOpen) return
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setAttachmentMenuOpen(false)
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape)
+    return () => window.removeEventListener("keydown", handleEscape)
+  }, [attachmentMenuOpen])
 
   async function send(event: FormEvent) {
     event.preventDefault()
@@ -231,11 +246,13 @@ export function AssistantPanel({
         },
       ])
     } catch (cause) {
-      setError(
+      const message =
         cause instanceof Error
           ? cause.message
-          : "Assistente indisponível. Tente novamente.",
-      )
+          : "Assistente indisponível. Tente novamente."
+
+      setError(message)
+      toast.error(message)
     } finally {
       running.current = false
       setBusy(false)
@@ -276,12 +293,16 @@ export function AssistantPanel({
             : messageItem,
         ),
       )
+
+      toast.success(result.message || "Registro confirmado com sucesso.")
     } catch (cause) {
-      setError(
+      const message =
         cause instanceof Error
           ? cause.message
-          : "Não foi possível confirmar o registro.",
-      )
+          : "Não foi possível confirmar o registro."
+
+      setError(message)
+      toast.error(message)
     } finally {
       running.current = false
       setBusy(false)
@@ -304,6 +325,8 @@ export function AssistantPanel({
           : messageItem,
       ),
     )
+
+    toast.info("Registro descartado.")
   }
 
   function handleAttachmentChange(event: ChangeEvent<HTMLInputElement>) {
@@ -374,7 +397,7 @@ export function AssistantPanel({
     input.click()
   }
 
-  function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+  function handleComposerKeyDown(event: ReactKeyboardEvent<HTMLTextAreaElement>) {
     if (
       event.key === "Enter" &&
       !event.shiftKey &&
