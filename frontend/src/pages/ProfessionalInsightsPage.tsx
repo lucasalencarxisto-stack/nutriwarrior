@@ -94,12 +94,20 @@ export function ProfessionalInsightsPage() {
               Visão geral
             </button>
 
-            <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950">
+            <button
+              type="button"
+              onClick={() => navigate("/professional/patients")}
+              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
+            >
               <Users size={19} />
               Pacientes
             </button>
 
-            <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950">
+            <button
+              type="button"
+              onClick={() => navigate("/professional/reports")}
+              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
+            >
               <ClipboardList size={19} />
               Relatórios
             </button>
