@@ -70,3 +70,33 @@ export function DashboardTableSkeleton() {
     </div>
   )
 }
+
+
+export function ReportPreviewSkeleton() {
+  return (
+    <section
+      aria-hidden="true"
+      className="mt-7 rounded-[30px] border border-neutral-200 bg-white p-6 shadow-sm sm:p-8"
+    >
+      <div className="flex items-start justify-between gap-4 border-b border-neutral-200 pb-6">
+        <div className="space-y-3">
+          <Skeleton className="h-3 w-40" />
+          <Skeleton className="h-7 w-56" />
+          <Skeleton className="h-4 w-72 max-w-full" />
+        </div>
+        <Skeleton className="h-11 w-40" />
+      </div>
+
+      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+        <Skeleton className="h-28" />
+      </div>
+
+      <div className="mt-7 grid gap-3 sm:grid-cols-2">
+        <Skeleton className="h-24" />
+        <Skeleton className="h-24" />
+      </div>
+    </section>
+  )
+}
