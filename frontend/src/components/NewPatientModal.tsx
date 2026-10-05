@@ -8,7 +8,9 @@ import {
   X,
 } from "lucide-react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+import { useToast } from "./ToastProvider"
 
 import {
   createPatient,
@@ -55,6 +57,7 @@ export function NewPatientModal({
   patient,
 }: NewPatientModalProps) {
   const editing = patient !== undefined
+  const toast = useToast()
   const [nome, setNome] = useState(patient?.nome ?? "")
   const [email, setEmail] = useState(patient?.email ?? "")
   const [telefone, setTelefone] = useState(formatPhone(patient?.telefone ?? ""))
@@ -70,6 +73,19 @@ export function NewPatientModal({
 
   const [error, setError] =
     useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape" && !loading) {
+        handleClose()
+      }
+    }
+
+    window.addEventListener("keydown", handleEscape)
+    return () => window.removeEventListener("keydown", handleEscape)
+  }, [open, loading])
 
 
   if (!open) {
@@ -181,15 +197,23 @@ export function NewPatientModal({
 
       resetForm()
 
+      toast.success(
+        editing
+          ? "Paciente atualizado com sucesso."
+          : "Paciente cadastrado com sucesso.",
+      )
+
       onCreated()
       onClose()
 
     } catch (err) {
-      setError(
+      const message =
         err instanceof Error
           ? err.message
-          : "Não foi possível salvar o paciente.",
-      )
+          : "Não foi possível salvar o paciente."
+
+      setError(message)
+      toast.error(message)
     } finally {
       setLoading(false)
     }
