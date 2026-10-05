@@ -173,9 +173,7 @@ export function PatientSections({
             initialTags={initialTags}
             records={records}
             summaries={summaries}
-            heightCm={heightCm}
             currentWeight={currentWeight}
-            age={age}
             targetWeight={targetWeight}
           />
         )}
