@@ -252,7 +252,7 @@ export function ProfessionalLayout({
       >
         <header
           className={[
-            "sticky top-0 z-20 border-b border-neutral-200/80 bg-white/88 px-4 backdrop-blur-xl sm:px-6 lg:px-8",
+            "sticky top-0 z-20 border-b border-neutral-200/80 bg-white/[0.88] px-4 backdrop-blur-xl sm:px-6 lg:px-8",
             printFriendly ? "print:hidden" : "",
           ].join(" ")}
         >
