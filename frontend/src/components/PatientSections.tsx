@@ -133,7 +133,11 @@ export function PatientSections({
 
       <div className="min-w-0">
         {active === "assistant" && (
-          <AssistantPanel key={clienteId} clienteId={clienteId} />
+          <AssistantPanel
+            key={clienteId}
+            clienteId={clienteId}
+            patientName={patientName}
+          />
         )}
 
         {active === "consultations" && (
