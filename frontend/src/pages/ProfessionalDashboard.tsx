@@ -1,6 +1,6 @@
 import { FollowUpPanel } from "../components/FollowUpPanel"
-import { DashboardInsights } from "../components/DashboardInsights"
 import { AgendaOverview } from "../components/AgendaOverview"
+import { AssistantPanel } from "../components/AssistantPanel"
 import { NotificationBell } from "../components/NotificationBell"
 import { NewPatientModal } from "../components/NewPatientModal"
 import { useNavigate } from "react-router-dom"
@@ -189,6 +189,9 @@ export function ProfessionalDashboard() {
     const [patientToDelete, setPatientToDelete] =
         useState<Patient | null>(null)
 
+    const [assistantPatientId, setAssistantPatientId] =
+        useState<number | null>(null)
+
 
     async function loadPatients() {
         try {
@@ -282,6 +285,31 @@ export function ProfessionalDashboard() {
             search,
         ])
 
+    const assistantPatients = useMemo(
+        () => patients.filter((patient) => patient.clienteId !== null),
+        [patients],
+    )
+
+    useEffect(() => {
+        if (assistantPatients.length === 0) {
+            setAssistantPatientId(null)
+            return
+        }
+
+        const currentStillExists = assistantPatients.some(
+            (patient) => patient.clienteId === assistantPatientId,
+        )
+
+        if (!currentStillExists) {
+            setAssistantPatientId(assistantPatients[0].clienteId)
+        }
+    }, [assistantPatients, assistantPatientId])
+
+    const assistantPatient =
+        assistantPatients.find(
+            (patient) => patient.clienteId === assistantPatientId,
+        ) ?? assistantPatients[0] ?? null
+
 
     return (
         <div className="min-h-screen bg-[#f8faf9] text-neutral-950">
@@ -311,7 +339,11 @@ export function ProfessionalDashboard() {
                             Relatórios
                         </button>
 
-                        <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950">
+                        <button
+                            type="button"
+                            onClick={() => navigate("/professional/insights")}
+                            className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
+                        >
                             <Bot size={19} />
                             Insights de IA
                         </button>
@@ -820,121 +852,71 @@ export function ProfessionalDashboard() {
                         </div>
 
 
-                        <div className="space-y-6">
-
-                            <div className="rounded-[28px] bg-neutral-950 p-6 text-white">
-
-                                <div className="flex items-center justify-between">
-
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
-                                        <Bot size={21} />
-                                    </div>
-
-                                    <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-300">
-                                        IA ativa
-                                    </span>
-
+                        <div className="min-w-0">
+                            <div className="mb-3 flex flex-wrap items-center justify-between gap-3 px-1">
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-wider text-teal-700">
+                                        Assistente clínico
+                                    </p>
+                                    <p className="mt-1 text-sm text-neutral-500">
+                                        Consulte e atualize os registros de um paciente sem sair da visão geral.
+                                    </p>
                                 </div>
 
-
-                                <h3 className="mt-6 text-xl font-semibold">
-                                    Insights NutriWarrior
-                                </h3>
-
-                                <p className="mt-2 text-sm leading-6 text-neutral-400">
-
-                                    A inteligência do sistema analisará os registros
-                                    dos pacientes para destacar padrões relevantes.
-
-                                </p>
-
-
-                                <div className="mt-6 space-y-3">
-
-                                    <InsightItem
-                                        text={
-                                            loadingPatients
-                                                ? "Carregando informações da carteira..."
-                                                : `${patients.length} ${patients.length === 1
-                                                    ? "paciente está vinculado"
-                                                    : "pacientes estão vinculados"
-                                                } a esta conta.`
-                                        }
-                                    />
-
-                                    <InsightItem
-                                        text="Os indicadores de adesão serão calculados a partir dos registros reais."
-                                    />
-
-                                    <InsightItem
-                                        text="Alertas de hidratação, peso e refeições aparecerão aqui."
-                                    />
-
-                                </div>
-
-
-                                <button className="mt-6 flex items-center gap-2 text-sm font-semibold text-emerald-300">
-
-                                    Ver todos os insights
-
-                                    <ChevronRight size={16} />
-
-                                </button>
-
+                                {assistantPatients.length > 1 && (
+                                    <label className="flex items-center gap-2 text-xs font-medium text-neutral-500">
+                                        Paciente
+                                        <select
+                                            value={assistantPatient?.clienteId ?? ""}
+                                            onChange={(event) =>
+                                                setAssistantPatientId(
+                                                    Number(event.target.value),
+                                                )
+                                            }
+                                            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-medium text-neutral-800 outline-none focus:border-emerald-300"
+                                        >
+                                            {assistantPatients.map((patient) => (
+                                                <option
+                                                    key={patient.id}
+                                                    value={patient.clienteId ?? ""}
+                                                >
+                                                    {patient.nome}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                )}
                             </div>
 
-
-                            <div className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-sm">
-
-                                <div className="flex items-center gap-3">
-
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-700">
-
-                                        <CircleAlert size={19} />
-
-                                    </div>
-
-
+                            {assistantPatient?.clienteId ? (
+                                <AssistantPanel
+                                    key={assistantPatient.clienteId}
+                                    clienteId={assistantPatient.clienteId}
+                                    patientName={assistantPatient.nome}
+                                    variant="compact"
+                                />
+                            ) : (
+                                <div className="flex min-h-[560px] items-center justify-center rounded-[28px] border border-dashed border-neutral-200 bg-white px-6 text-center shadow-sm">
                                     <div>
-
-                                        <h3 className="font-semibold">
-                                            Atenção necessária
-                                        </h3>
-
-                                        <p className="text-sm text-neutral-500">
-                                            Aguardando análise
+                                        <Bot
+                                            size={28}
+                                            className="mx-auto text-neutral-300"
+                                        />
+                                        <p className="mt-4 font-semibold">
+                                            Assistente aguardando paciente
                                         </p>
-
+                                        <p className="mt-2 max-w-sm text-sm leading-6 text-neutral-500">
+                                            Vincule um paciente com ficha ativa para usar o NutriWarrior Assistant nesta tela.
+                                        </p>
                                     </div>
-
                                 </div>
-
-
-                                <p className="mt-5 text-sm leading-6 text-neutral-500">
-
-                                    Os alertas serão exibidos quando os dados de
-                                    atividade e adesão estiverem integrados.
-
-                                </p>
-
-
-                                <button className="mt-5 flex items-center gap-2 text-sm font-semibold text-neutral-950">
-
-                                    Revisar pacientes
-
-                                    <ChevronRight size={16} />
-
-                                </button>
-
-                            </div>
-
+                            )}
                         </div>
 
                     </section>
 
                 </div>
 
-                <DashboardInsights patientCount={patients.length} loadingPatients={loadingPatients} />
                 <AgendaOverview />
                 <FollowUpPanel />
             </main>
@@ -1028,21 +1010,3 @@ function MetricCard({
         </div>
     )
 }
-
-
-function InsightItem({
-    text,
-}: {
-    text: string
-}) {
-    return (
-        <div className="rounded-2xl bg-white/5 px-4 py-3">
-
-            <p className="text-sm leading-5 text-neutral-300">
-                {text}
-            </p>
-
-        </div>
-    )
-}
-
