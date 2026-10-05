@@ -379,6 +379,7 @@ export function ProfessionalReportsPage() {
             id="report-from-date"
             label="De"
             value={fromDate}
+            required
             max={toDate || undefined}
             onChange={value => {
               setFromDate(value)
@@ -390,6 +391,7 @@ export function ProfessionalReportsPage() {
             id="report-to-date"
             label="Até"
             value={toDate}
+            required
             min={fromDate || undefined}
             onChange={value => {
               setToDate(value)
