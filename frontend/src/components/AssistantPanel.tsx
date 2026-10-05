@@ -157,9 +157,11 @@ function AssistantAvatar({ mood = "default" }: { mood?: AssistantMood }) {
 export function AssistantPanel({
   clienteId,
   patientName,
+  variant = "default",
 }: {
   clienteId: number
   patientName?: string
+  variant?: "default" | "compact"
 }) {
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage])
@@ -173,6 +175,7 @@ export function AssistantPanel({
   const endRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const initials = patientInitials(patientName)
+  const compact = variant === "compact"
 
   const pendingConfirmation = messages.some(
     item =>
@@ -383,25 +386,48 @@ export function AssistantPanel({
   }
 
   return (
-    <section className="mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-white shadow-[0_18px_55px_rgba(15,118,110,0.10)]">
+    <section
+      className={[
+        "overflow-hidden rounded-[30px] border border-emerald-100 bg-white shadow-[0_18px_55px_rgba(15,118,110,0.10)]",
+        compact ? "mt-0" : "mt-6",
+      ].join(" ")}
+    >
       <header
-        className="relative overflow-hidden border-b border-emerald-100 bg-[#eaf7f0] px-5 py-5 sm:px-7"
+        className={[
+          "relative overflow-hidden border-b border-emerald-100 bg-[#eaf7f0]",
+          compact ? "px-4 py-4" : "px-5 py-5 sm:px-7",
+        ].join(" ")}
         style={{
           backgroundImage: `linear-gradient(90deg, rgba(234,247,240,.94), rgba(234,247,240,.78)), url(${chatBackground})`,
           backgroundPosition: "center",
           backgroundSize: "cover",
         }}
       >
-        <div className="relative z-10 flex min-h-28 items-center gap-4 sm:min-h-32 sm:gap-6">
+        <div
+          className={[
+            "relative z-10 flex items-center",
+            compact ? "min-h-20 gap-3" : "min-h-28 gap-4 sm:min-h-32 sm:gap-6",
+          ].join(" ")}
+        >
           <img
             src={mascot}
             alt="Mascote do NutriWarrior Assistant"
-            className="h-24 w-24 shrink-0 object-contain drop-shadow-md sm:h-32 sm:w-32"
+            className={
+              compact
+                ? "h-16 w-16 shrink-0 object-contain drop-shadow-md"
+                : "h-24 w-24 shrink-0 object-contain drop-shadow-md sm:h-32 sm:w-32"
+            }
           />
 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg font-bold tracking-tight text-emerald-950 sm:text-xl">
+              <h2
+                className={
+                  compact
+                    ? "text-base font-bold tracking-tight text-emerald-950"
+                    : "text-lg font-bold tracking-tight text-emerald-950 sm:text-xl"
+                }
+              >
                 NutriWarrior Assistant
               </h2>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm backdrop-blur">
@@ -410,17 +436,31 @@ export function AssistantPanel({
               </span>
             </div>
 
-            <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-950/65">
-              Seu assistente para registrar peso, água e refeições com uma
-              confirmação rápida antes de salvar.
-            </p>
+            {compact ? (
+              <p className="mt-1 text-xs text-emerald-950/60">
+                {patientName ? `Conversando sobre ${patientName}` : "Assistente clínico"}
+              </p>
+            ) : (
+              <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-950/65">
+                Seu assistente para registrar peso, água e refeições com uma
+                confirmação rápida antes de salvar.
+              </p>
+            )}
           </div>
         </div>
       </header>
 
-      <div className="flex min-h-[540px] max-h-[700px] flex-col bg-gradient-to-b from-[#f8fcfa] to-[#f2f8f5]">
+      <div
+        className={[
+          "flex flex-col bg-gradient-to-b from-[#f8fcfa] to-[#f2f8f5]",
+          compact ? "min-h-[470px] max-h-[620px]" : "min-h-[540px] max-h-[700px]",
+        ].join(" ")}
+      >
         <div
-          className="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-6"
+          className={[
+            "flex-1 overflow-y-auto",
+            compact ? "space-y-4 px-3 py-4" : "space-y-5 px-4 py-6 sm:px-6",
+          ].join(" ")}
           aria-live="polite"
         >
           {messages.map(item => {
@@ -526,7 +566,10 @@ export function AssistantPanel({
         <form
           ref={formRef}
           onSubmit={send}
-          className="border-t border-emerald-100 bg-white/95 p-4 backdrop-blur sm:p-5"
+          className={[
+            "border-t border-emerald-100 bg-white/95 backdrop-blur",
+            compact ? "p-3" : "p-4 sm:p-5",
+          ].join(" ")}
         >
           {pendingConfirmation && (
             <p className="mb-2 text-xs font-medium text-amber-700">
