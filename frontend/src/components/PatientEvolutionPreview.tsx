@@ -3090,13 +3090,25 @@ export function PatientEvolutionPreview({
 
                         }
 
-                        stroke="#e69e5a"
+                        stroke={
+                          selectedMetric === "peso"
+                            ? "#dc2626"
+                            : "#e69e5a"
+                        }
 
                         strokeDasharray="8 6"
 
-                        strokeWidth="1.5"
+                        strokeWidth={
+                          selectedMetric === "peso"
+                            ? "2"
+                            : "1.5"
+                        }
 
-                        opacity="0.7"
+                        opacity={
+                          selectedMetric === "peso"
+                            ? "0.9"
+                            : "0.7"
+                        }
 
                       />
 
@@ -3128,8 +3140,12 @@ export function PatientEvolutionPreview({
 
                         fontSize="12"
 
-                        fill="#ce671e"
-                        fontWeight="600"
+                        fill={
+                          selectedMetric === "peso"
+                            ? "#b91c1c"
+                            : "#ce671e"
+                        }
+                        fontWeight="700"
 
                       >
                         {`Meta ${formatNumber(

@@ -11,6 +11,7 @@ import {
 import { useEffect, useState } from "react"
 
 import { useToast } from "./ToastProvider"
+import { ScheduleDatePicker } from "./SchedulePicker"
 
 import {
   createPatient,
@@ -394,23 +395,13 @@ export function NewPatientModal({
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="patient-birth-date"
-                className="text-sm font-medium text-neutral-700"
-              >
-                Data de nascimento
-              </label>
-
-              <input
-                id="patient-birth-date"
-                type="date"
-                value={dataNascimento}
-                onChange={(event) => setDataNascimento(event.target.value)}
-                disabled={loading}
-                className="mt-2 h-12 w-full rounded-2xl border border-neutral-200 bg-white px-4 text-sm outline-none transition focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100 disabled:bg-neutral-50"
-              />
-            </div>
+            <ScheduleDatePicker
+              id="patient-birth-date"
+              label="Data de nascimento"
+              value={dataNascimento}
+              onChange={setDataNascimento}
+              disabled={loading}
+            />
 
           </div>
 

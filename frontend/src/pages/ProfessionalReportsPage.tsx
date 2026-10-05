@@ -11,6 +11,7 @@ import {
   Weight,
 } from "lucide-react"
 import { BrandLogo } from "../components/BrandLogo"
+import { ScheduleDatePicker } from "../components/SchedulePicker"
 import { ProfessionalLayout } from "../components/ProfessionalLayout"
 import { ReportPreviewSkeleton } from "../components/Skeleton"
 import { useToast } from "../components/ToastProvider"
@@ -374,31 +375,29 @@ export function ProfessionalReportsPage() {
             </select>
           </label>
 
-          <label className="text-sm font-medium text-neutral-700">
-            De
-            <input
-              type="date"
-              value={fromDate}
-              onChange={event => {
-                setFromDate(event.target.value)
-                setReport(null)
-              }}
-              className="mt-2 h-12 w-full rounded-2xl border border-neutral-200 bg-neutral-50/70 px-4 text-sm outline-none transition focus:border-emerald-300 focus:bg-white"
-            />
-          </label>
+          <ScheduleDatePicker
+            id="report-from-date"
+            label="De"
+            value={fromDate}
+            required
+            max={toDate || undefined}
+            onChange={value => {
+              setFromDate(value)
+              setReport(null)
+            }}
+          />
 
-          <label className="text-sm font-medium text-neutral-700">
-            Até
-            <input
-              type="date"
-              value={toDate}
-              onChange={event => {
-                setToDate(event.target.value)
-                setReport(null)
-              }}
-              className="mt-2 h-12 w-full rounded-2xl border border-neutral-200 bg-neutral-50/70 px-4 text-sm outline-none transition focus:border-emerald-300 focus:bg-white"
-            />
-          </label>
+          <ScheduleDatePicker
+            id="report-to-date"
+            label="Até"
+            value={toDate}
+            required
+            min={fromDate || undefined}
+            onChange={value => {
+              setToDate(value)
+              setReport(null)
+            }}
+          />
         </div>
 
         <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
