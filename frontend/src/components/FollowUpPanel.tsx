@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { CalendarClock, RefreshCw } from "lucide-react"
 import { Link } from "react-router-dom"
 import { dateLabel, getFollowUps, today, type FollowUp } from "../services/care"
 
@@ -62,15 +63,26 @@ export function FollowUpPanel() {
   }
 
   return (
-    <section className="mx-6 my-6 rounded-3xl border border-neutral-200 bg-white p-5 lg:mx-10">
+    <section className="my-6 rounded-[30px] border border-neutral-200/80 bg-white p-5 shadow-[0_14px_40px_rgba(15,23,42,0.045)] sm:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-semibold">Acompanhamento · retornos previstos</h2>
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-violet-50 text-violet-700">
+            <CalendarClock size={18} />
+          </span>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+              Acompanhamento
+            </p>
+            <h2 className="mt-1 font-semibold">Retornos previstos</h2>
+          </div>
+        </div>
         <button
           type="button"
           disabled={loading}
           onClick={refresh}
-          className="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-semibold text-neutral-600 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700 disabled:opacity-50"
         >
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
           {loading ? "Atualizando…" : "Atualizar"}
         </button>
       </div>
@@ -93,7 +105,7 @@ export function FollowUpPanel() {
           {groups.map(group => (
             <section
               key={group.title}
-              className="min-w-0 rounded-2xl border border-neutral-100 p-4"
+              className="min-w-0 rounded-[22px] border border-neutral-100 bg-neutral-50/60 p-4"
             >
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-sm font-semibold">{group.title}</h3>
@@ -115,7 +127,7 @@ export function FollowUpPanel() {
                     <li key={row.clienteId} className="py-3">
                       <Link
                         to={`/professional/patients/${row.clienteId}?section=consultations`}
-                        className="break-words text-sm font-medium text-teal-700 underline"
+                        className="break-words text-sm font-semibold text-emerald-700 transition hover:text-emerald-800"
                       >
                         {row.patient}
                       </Link>
