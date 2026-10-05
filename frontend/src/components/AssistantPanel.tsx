@@ -2,11 +2,25 @@ import {
   useEffect,
   useRef,
   useState,
+  type ChangeEvent,
   type FormEvent,
   type KeyboardEvent,
 } from "react"
-import { Bot, Check, SendHorizontal, X } from "lucide-react"
+import { Check, X } from "lucide-react"
 import { apiFetch } from "../services/api"
+import attachmentIcon from "../assets/anexo-icon.png"
+import chatBackground from "../assets/back-ground.png"
+import clarifyIcon from "../assets/clarefy-icone.png"
+import defaultIcon from "../assets/default-icone.png"
+import errorIcon from "../assets/error-icone.png"
+import imageIcon from "../assets/img-icon.png"
+import mascot from "../assets/mascote.png"
+import pdfIcon from "../assets/pdf-icon.png"
+import sendIcon from "../assets/send-icon.png"
+import successIcon from "../assets/sucess-icone.png"
+import thinkingIcon from "../assets/thinking-icone.png"
+import txtIcon from "../assets/txt-icon.png"
+import warningIcon from "../assets/warning-icone.png"
 
 type Reply = {
   message: string
@@ -14,30 +28,148 @@ type Reply = {
   confirmationId?: string | null
 }
 
+type AssistantMood =
+  | "default"
+  | "thinking"
+  | "clarify"
+  | "error"
+  | "success"
+  | "warning"
+
 type ChatMessage = {
   id: string
   role: "assistant" | "user"
   message: string
+  mood?: AssistantMood
   confirmationRequired?: boolean
   confirmationId?: string | null
   discarded?: boolean
 }
 
+type AttachmentPreview = {
+  id: string
+  name: string
+  size: number
+  kind: "image" | "pdf" | "txt"
+}
+
+const moodIcons: Record<AssistantMood, string> = {
+  default: defaultIcon,
+  thinking: thinkingIcon,
+  clarify: clarifyIcon,
+  error: errorIcon,
+  success: successIcon,
+  warning: warningIcon,
+}
+
 const welcomeMessage: ChatMessage = {
   id: "welcome",
   role: "assistant",
+  mood: "default",
   message:
     "Olá! Posso te ajudar a registrar peso, água e refeições. O que você quer atualizar?",
 }
 
-export function AssistantPanel({ clienteId }: { clienteId: number }) {
+const MAX_ATTACHMENTS = 3
+const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
+
+function patientInitials(name?: string) {
+  const parts = name?.trim().split(/\s+/).filter(Boolean) ?? []
+
+  if (parts.length === 0) return "EU"
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+}
+
+function inferMood(reply: Reply): AssistantMood {
+  const normalized = reply.message.toLocaleLowerCase("pt-BR")
+
+  if (
+    /não entendi|não consegui identificar|preciso que|me informe|qual quantidade|quanto|quantos|especifique|poderia informar/.test(
+      normalized,
+    )
+  ) {
+    return "clarify"
+  }
+
+  if (
+    /estimativ|aproximad|atenção|aviso|cuidado|confirme antes|confirmar antes/.test(
+      normalized,
+    )
+  ) {
+    return "warning"
+  }
+
+  if (reply.confirmationRequired) return "warning"
+
+  return "default"
+}
+
+function attachmentKind(file: File): AttachmentPreview["kind"] | null {
+  const lower = file.name.toLowerCase()
+
+  if (
+    file.type.startsWith("image/") ||
+    /\.(png|jpe?g|webp)$/.test(lower)
+  ) {
+    return "image"
+  }
+
+  if (file.type === "application/pdf" || lower.endsWith(".pdf")) {
+    return "pdf"
+  }
+
+  if (file.type === "text/plain" || lower.endsWith(".txt")) {
+    return "txt"
+  }
+
+  return null
+}
+
+function attachmentAsset(kind: AttachmentPreview["kind"]) {
+  if (kind === "pdf") return pdfIcon
+  if (kind === "txt") return txtIcon
+  return imageIcon
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+function AssistantAvatar({ mood = "default" }: { mood?: AssistantMood }) {
+  return (
+    <div className="mb-1 h-10 w-10 shrink-0 overflow-hidden rounded-full bg-white shadow-sm ring-1 ring-emerald-100">
+      <img
+        src={moodIcons[mood]}
+        alt=""
+        aria-hidden="true"
+        className="h-full w-full object-cover"
+      />
+    </div>
+  )
+}
+
+export function AssistantPanel({
+  clienteId,
+  patientName,
+}: {
+  clienteId: number
+  patientName?: string
+}) {
   const [message, setMessage] = useState("")
   const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage])
+  const [attachments, setAttachments] = useState<AttachmentPreview[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
+  const [attachmentError, setAttachmentError] = useState("")
   const running = useRef(false)
   const formRef = useRef<HTMLFormElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const initials = patientInitials(patientName)
 
   const pendingConfirmation = messages.some(
     item =>
@@ -49,18 +181,14 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
-  }, [messages, busy, error])
+  }, [messages, busy, error, attachments])
 
   async function send(event: FormEvent) {
     event.preventDefault()
 
     const text = message.trim()
 
-    if (
-      running.current ||
-      !text ||
-      pendingConfirmation
-    ) {
+    if (running.current || !text || pendingConfirmation) {
       return
     }
 
@@ -90,6 +218,7 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
         {
           id: crypto.randomUUID(),
           role: "assistant",
+          mood: inferMood(reply),
           message: reply.message,
           confirmationRequired: reply.confirmationRequired,
           confirmationId: reply.confirmationId,
@@ -133,6 +262,7 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
           messageItem.id === item.id
             ? {
                 ...messageItem,
+                mood: "success",
                 message: result.message,
                 confirmationRequired: false,
                 confirmationId: null,
@@ -160,6 +290,7 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
         messageItem.id === item.id
           ? {
               ...messageItem,
+              mood: "warning",
               confirmationRequired: false,
               confirmationId: null,
               discarded: true,
@@ -167,6 +298,59 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
           : messageItem,
       ),
     )
+  }
+
+  function handleAttachmentChange(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? [])
+    event.target.value = ""
+
+    if (files.length === 0) return
+
+    setAttachmentError("")
+
+    const remaining = MAX_ATTACHMENTS - attachments.length
+    if (remaining <= 0) {
+      setAttachmentError("Você pode selecionar até 3 anexos por mensagem.")
+      return
+    }
+
+    const next: AttachmentPreview[] = []
+
+    for (const file of files.slice(0, remaining)) {
+      const kind = attachmentKind(file)
+
+      if (!kind) {
+        setAttachmentError(
+          "Formato não suportado. Use PNG, JPG, WEBP, PDF ou TXT.",
+        )
+        continue
+      }
+
+      if (file.size > MAX_ATTACHMENT_SIZE) {
+        setAttachmentError(
+          `${file.name} excede o limite de 10 MB por arquivo.`,
+        )
+        continue
+      }
+
+      next.push({
+        id: crypto.randomUUID(),
+        name: file.name,
+        size: file.size,
+        kind,
+      })
+    }
+
+    setAttachments(current => [...current, ...next])
+
+    if (files.length > remaining) {
+      setAttachmentError("Somente os 3 primeiros anexos foram selecionados.")
+    }
+  }
+
+  function removeAttachment(id: string) {
+    setAttachments(current => current.filter(item => item.id !== id))
+    setAttachmentError("")
   }
 
   function handleComposerKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -181,32 +365,44 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
   }
 
   return (
-    <section className="mt-6 overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-sm">
-      <header className="flex items-center gap-3 border-b border-neutral-100 bg-white px-5 py-4 sm:px-6">
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-neutral-950 text-white">
-          <Bot size={20} aria-hidden="true" />
-        </div>
+    <section className="mt-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-white shadow-[0_18px_55px_rgba(15,118,110,0.10)]">
+      <header
+        className="relative overflow-hidden border-b border-emerald-100 bg-[#eaf7f0] px-5 py-5 sm:px-7"
+        style={{
+          backgroundImage: `linear-gradient(90deg, rgba(234,247,240,.94), rgba(234,247,240,.78)), url(${chatBackground})`,
+          backgroundPosition: "center",
+          backgroundSize: "cover",
+        }}
+      >
+        <div className="relative z-10 flex min-h-28 items-center gap-4 sm:min-h-32 sm:gap-6">
+          <img
+            src={mascot}
+            alt="Mascote do NutriWarrior Assistant"
+            className="h-24 w-24 shrink-0 object-contain drop-shadow-md sm:h-32 sm:w-32"
+          />
 
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="font-semibold text-neutral-950">
-              NutriWarrior Assistant
-            </h2>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-medium text-emerald-700">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Online
-            </span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg font-bold tracking-tight text-emerald-950 sm:text-xl">
+                NutriWarrior Assistant
+              </h2>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white/80 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm backdrop-blur">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,.12)]" />
+                Online
+              </span>
+            </div>
+
+            <p className="mt-2 max-w-xl text-sm leading-6 text-emerald-950/65">
+              Seu assistente para registrar peso, água e refeições com uma
+              confirmação rápida antes de salvar.
+            </p>
           </div>
-
-          <p className="mt-0.5 text-xs text-neutral-500">
-            Registros de peso, água e refeições com confirmação antes de salvar.
-          </p>
         </div>
       </header>
 
-      <div className="flex min-h-[520px] max-h-[640px] flex-col bg-[#f7faf9]">
+      <div className="flex min-h-[540px] max-h-[700px] flex-col bg-gradient-to-b from-[#f8fcfa] to-[#f2f8f5]">
         <div
-          className="flex-1 space-y-4 overflow-y-auto px-4 py-5 sm:px-6"
+          className="flex-1 space-y-5 overflow-y-auto px-4 py-6 sm:px-6"
           aria-live="polite"
         >
           {messages.map(item => {
@@ -215,15 +411,23 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
             return (
               <div
                 key={item.id}
-                className={[
-                  "flex",
-                  assistant ? "justify-start" : "justify-end",
-                ].join(" ")}
+                className={`flex ${assistant ? "justify-start" : "justify-end"}`}
               >
-                <div className={assistant ? "flex max-w-[88%] items-end gap-2 sm:max-w-[78%]" : "max-w-[88%] sm:max-w-[72%]"}>
-                  {assistant && (
-                    <div className="mb-1 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-teal-700 shadow-sm ring-1 ring-neutral-200">
-                      <Bot size={15} aria-hidden="true" />
+                <div
+                  className={
+                    assistant
+                      ? "flex max-w-[92%] items-end gap-2.5 sm:max-w-[80%]"
+                      : "flex max-w-[92%] flex-row-reverse items-end gap-2.5 sm:max-w-[74%]"
+                  }
+                >
+                  {assistant ? (
+                    <AssistantAvatar mood={item.mood} />
+                  ) : (
+                    <div
+                      aria-label={patientName ? `Mensagem de ${patientName}` : "Sua mensagem"}
+                      className="mb-1 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-teal-700 text-[11px] font-bold tracking-wide text-white shadow-sm ring-2 ring-white"
+                    >
+                      {initials}
                     </div>
                   )}
 
@@ -231,14 +435,14 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
                     className={[
                       "rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm",
                       assistant
-                        ? "rounded-bl-md border border-neutral-200 bg-white text-neutral-800"
-                        : "rounded-br-md bg-teal-600 text-white",
+                        ? "rounded-bl-md border border-emerald-100 bg-white text-neutral-800"
+                        : "rounded-br-md bg-teal-700 text-white shadow-teal-900/10",
                     ].join(" ")}
                   >
                     <p className="whitespace-pre-wrap">{item.message}</p>
 
                     {item.discarded && (
-                      <p className="mt-2 border-t border-neutral-100 pt-2 text-xs text-neutral-400">
+                      <p className="mt-2 border-t border-amber-100 pt-2 text-xs text-amber-700">
                         Registro descartado.
                       </p>
                     )}
@@ -251,7 +455,7 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
                             type="button"
                             disabled={busy}
                             onClick={() => void confirm(item)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-teal-600 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-teal-700 disabled:opacity-50"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-teal-700 px-3.5 py-2 text-xs font-semibold text-white transition hover:bg-teal-800 disabled:opacity-50"
                           >
                             <Check size={14} aria-hidden="true" />
                             Confirmar
@@ -276,25 +480,25 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
 
           {busy && (
             <div className="flex justify-start">
-              <div className="flex items-end gap-2">
-                <div className="mb-1 grid h-8 w-8 place-items-center rounded-full bg-white text-teal-700 shadow-sm ring-1 ring-neutral-200">
-                  <Bot size={15} aria-hidden="true" />
-                </div>
-                <div className="flex items-center gap-1 rounded-2xl rounded-bl-md border border-neutral-200 bg-white px-4 py-3 shadow-sm">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400" />
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400 [animation-delay:150ms]" />
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-neutral-400 [animation-delay:300ms]" />
+              <div className="flex items-end gap-2.5">
+                <AssistantAvatar mood="thinking" />
+                <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md border border-emerald-100 bg-white px-4 py-3.5 shadow-sm">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 [animation-delay:150ms]" />
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500 [animation-delay:300ms]" />
                 </div>
               </div>
             </div>
           )}
 
           {error && (
-            <div
-              role="alert"
-              className="mx-auto max-w-xl rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-center text-xs text-red-700"
-            >
-              {error}
+            <div role="alert" className="flex justify-start">
+              <div className="flex max-w-[92%] items-end gap-2.5 sm:max-w-[80%]">
+                <AssistantAvatar mood="error" />
+                <div className="rounded-2xl rounded-bl-md border border-red-100 bg-white px-4 py-3 text-sm leading-6 text-red-700 shadow-sm">
+                  {error}
+                </div>
+              </div>
             </div>
           )}
 
@@ -304,15 +508,92 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
         <form
           ref={formRef}
           onSubmit={send}
-          className="border-t border-neutral-200 bg-white p-4 sm:p-5"
+          className="border-t border-emerald-100 bg-white/95 p-4 backdrop-blur sm:p-5"
         >
           {pendingConfirmation && (
-            <p className="mb-2 text-xs text-amber-700">
+            <p className="mb-2 text-xs font-medium text-amber-700">
               Confirme ou cancele o registro acima antes de enviar uma nova mensagem.
             </p>
           )}
 
-          <div className="flex items-end gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 p-2 transition focus-within:border-teal-300 focus-within:ring-2 focus-within:ring-teal-100">
+          {attachments.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {attachments.map(item => (
+                <div
+                  key={item.id}
+                  className="flex max-w-full items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50 px-2.5 py-2 shadow-sm"
+                >
+                  <img
+                    src={attachmentAsset(item.kind)}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-9 w-9 shrink-0 object-contain"
+                  />
+                  <div className="min-w-0">
+                    <p className="max-w-44 truncate text-xs font-semibold text-neutral-700">
+                      {item.name}
+                    </p>
+                    <p className="text-[10px] text-neutral-400">
+                      {formatBytes(item.size)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(item.id)}
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-neutral-400 transition hover:bg-white hover:text-neutral-700"
+                    aria-label={`Remover ${item.name}`}
+                  >
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(attachmentError || attachments.length > 0) && (
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+              {attachmentError ? (
+                <span className="text-amber-700">{attachmentError}</span>
+              ) : (
+                <span className="text-neutral-400">
+                  PNG, JPG, WEBP, PDF ou TXT · até 10 MB · máximo de 3 arquivos
+                </span>
+              )}
+              {attachments.length > 0 && (
+                <span className="font-medium text-neutral-400">
+                  Preview local — o envio dos arquivos será conectado ao backend na próxima etapa.
+                </span>
+              )}
+            </div>
+          )}
+
+          <div className="flex items-end gap-2 rounded-[22px] border border-neutral-200 bg-neutral-50 p-2 transition focus-within:border-emerald-300 focus-within:ring-2 focus-within:ring-emerald-100">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".png,.jpg,.jpeg,.webp,.pdf,.txt,image/png,image/jpeg,image/webp,application/pdf,text/plain"
+              onChange={handleAttachmentChange}
+              className="hidden"
+              aria-label="Selecionar anexos"
+            />
+
+            <button
+              type="button"
+              aria-label="Anexar arquivo"
+              title="Anexar arquivo"
+              disabled={busy || pendingConfirmation}
+              onClick={() => fileInputRef.current?.click()}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <img
+                src={attachmentIcon}
+                alt=""
+                aria-hidden="true"
+                className="h-7 w-7 object-contain"
+              />
+            </button>
+
             <textarea
               required
               maxLength={2000}
@@ -321,7 +602,7 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
               value={message}
               onChange={event => setMessage(event.target.value)}
               onKeyDown={handleComposerKeyDown}
-              className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm leading-5 text-neutral-950 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-2 py-2.5 text-sm leading-5 text-neutral-950 outline-none placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:opacity-50"
               placeholder={
                 pendingConfirmation
                   ? "Aguardando confirmação do registro..."
@@ -332,10 +613,16 @@ export function AssistantPanel({ clienteId }: { clienteId: number }) {
             <button
               type="submit"
               aria-label="Enviar mensagem"
+              title="Enviar mensagem"
               disabled={busy || pendingConfirmation || !message.trim()}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-teal-600 text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:bg-neutral-200 disabled:text-neutral-400"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-35"
             >
-              <SendHorizontal size={17} aria-hidden="true" />
+              <img
+                src={sendIcon}
+                alt=""
+                aria-hidden="true"
+                className="h-8 w-8 object-contain"
+              />
             </button>
           </div>
 
