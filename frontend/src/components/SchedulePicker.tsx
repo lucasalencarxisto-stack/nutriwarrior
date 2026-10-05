@@ -196,7 +196,7 @@ export function ScheduleDatePicker({
         <div
           role="dialog"
           aria-label={`Selecionar ${label.toLowerCase()}`}
-          className="absolute left-0 top-[calc(100%+8px)] z-50 w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl border border-neutral-200 bg-white p-4 shadow-xl"
+          className="absolute left-0 top-[calc(100%+8px)] z-50 w-80 max-w-[90vw] rounded-2xl border border-neutral-200 bg-white p-4 shadow-xl"
         >
           <div className="flex items-center justify-between gap-3">
             <button
