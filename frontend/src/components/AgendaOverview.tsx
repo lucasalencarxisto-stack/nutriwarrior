@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { getAgenda, type Appointment } from "../services/clinical"
+import { formatScheduleDateTime } from "./SchedulePicker"
 
 const labels = {
   SCHEDULED: "Agendado",
@@ -68,7 +69,7 @@ export function AgendaOverview() {
                 </span>
               </div>
               <p className="mt-2 text-sm text-neutral-600">
-                {new Date(item.startsAt).toLocaleString("pt-BR")}
+                {formatScheduleDateTime(item.startsAt)}
               </p>
               {item.notes && (
                 <p className="mt-1 line-clamp-2 text-xs text-neutral-500">

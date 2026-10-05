@@ -10,6 +10,7 @@ import {
 } from "../services/nutrition"
 import { PlanView } from "../components/PlanView"
 import { AssistantPanel } from "../components/AssistantPanel"
+import { formatScheduleDateTime } from "../components/SchedulePicker"
 
 export function PatientDashboard() {
   const navigate = useNavigate()
@@ -133,7 +134,7 @@ export function PatientDashboard() {
           <article className="rounded-2xl border border-neutral-200 bg-white p-4">
             <p className="text-xs text-neutral-500">Próxima consulta</p>
             <p className="mt-2 text-sm font-semibold">
-              {nextAppointment ? new Date(nextAppointment.startsAt).toLocaleString("pt-BR") : "Não agendada"}
+              {nextAppointment ? formatScheduleDateTime(nextAppointment.startsAt) : "Não agendada"}
             </p>
             <p className="mt-1 text-xs text-neutral-400">
               {nextAppointment?.status === "CONFIRMED" ? "Confirmada" : nextAppointment ? "Agendada" : "—"}
