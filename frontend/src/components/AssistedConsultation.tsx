@@ -4,6 +4,7 @@ import { getCareHistory, saveCare, today, type CareRecord } from "../services/ca
 import type { DayRecord } from "../services/days"
 import type { NutritionSummary } from "../services/nutrition"
 import { energyMethods } from "../utils/energy"
+import { ScheduleDatePicker } from "./SchedulePicker"
 
 const checklistItems = [
   "Peso atualizado",
@@ -257,16 +258,17 @@ export function AssistedConsultation({
             className="mt-2 w-full rounded-xl border border-neutral-200 p-3"
           />
         </label>
-        <label className="mt-4 block text-sm font-medium sm:max-w-xs">
-          Retorno
-          <input
-            type="date"
-            min={today()}
+        <div className="mt-4 sm:max-w-xs">
+          <ScheduleDatePicker
+            id="assisted-consultation-return"
+            label="Retorno"
             value={returnDate}
-            onChange={event => setReturnDate(event.target.value)}
-            className="mt-2 w-full rounded-xl border border-neutral-200 p-3"
+            onChange={setReturnDate}
+            min={today()}
+            disabled={busy}
+            hint="Data prevista para o próximo acompanhamento."
           />
-        </label>
+        </div>
         <div className="mt-5 flex flex-wrap gap-3">
           <button
             disabled={busy || (!anamnesis.trim() && !notes.trim())}
