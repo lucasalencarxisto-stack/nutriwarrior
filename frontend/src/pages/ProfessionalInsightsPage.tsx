@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
 import {
   Bot,
-  ClipboardList,
-  LayoutDashboard,
-  LogOut,
-  Settings,
-  Users,
+  Droplets,
+  Sparkles,
+  UtensilsCrossed,
+  Weight,
 } from "lucide-react"
-import { BrandLogo } from "../components/BrandLogo"
 import { DashboardInsights } from "../components/DashboardInsights"
-import { NotificationBell } from "../components/NotificationBell"
+import { ProfessionalLayout } from "../components/ProfessionalLayout"
 import { apiFetch } from "../services/api"
 import { getMe } from "../services/auth"
 
@@ -22,20 +19,7 @@ type ProfessionalUser = {
   clienteId: null
 }
 
-function getInitials(name?: string) {
-  if (!name) return "NW"
-
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map(part => part[0])
-    .join("")
-    .toUpperCase()
-}
-
 export function ProfessionalInsightsPage() {
-  const navigate = useNavigate()
   const [user, setUser] = useState<ProfessionalUser | null>(null)
   const [patientCount, setPatientCount] = useState(0)
   const [loadingPatients, setLoadingPatients] = useState(true)
@@ -76,144 +60,148 @@ export function ProfessionalInsightsPage() {
     }
   }, [])
 
+  const futureInsights = [
+    {
+      icon: Droplets,
+      title: "Hidratação",
+      text: "Padrões de meta, frequência e dias com baixa ingestão poderão ser destacados aqui.",
+      accent: "bg-sky-50 text-sky-700 ring-sky-100",
+    },
+    {
+      icon: Weight,
+      title: "Peso e evolução",
+      text: "Mudanças relevantes poderão ser comparadas por período sem inventar interpretações clínicas.",
+      accent: "bg-violet-50 text-violet-700 ring-violet-100",
+    },
+    {
+      icon: UtensilsCrossed,
+      title: "Adesão alimentar",
+      text: "Refeições registradas, frequência e plano alimentar poderão compor sinais de acompanhamento.",
+      accent: "bg-amber-50 text-amber-700 ring-amber-100",
+    },
+  ]
+
   return (
-    <div className="min-h-screen bg-[#f8faf9] text-neutral-950">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 border-r border-neutral-200 bg-white lg:flex lg:flex-col">
-        <div className="px-7 py-7">
-          <BrandLogo />
-        </div>
+    <ProfessionalLayout
+      active="insights"
+      title="Insights de IA"
+      userName={user?.nome}
+      breadcrumbs={[
+        { label: "Workspace", href: "/professional" },
+        { label: "Insights de IA" },
+      ]}
+    >
+      <section className="relative overflow-hidden rounded-[34px] bg-neutral-950 p-6 text-white shadow-[0_24px_65px_rgba(15,23,42,0.18)] sm:p-8 lg:p-9">
+        <div
+          aria-hidden="true"
+          className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-emerald-500/20 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="absolute bottom-0 left-1/3 h-40 w-40 rounded-full bg-teal-400/10 blur-3xl"
+        />
 
-        <nav className="mt-4 flex-1 px-4">
-          <div className="space-y-2">
-            <button
-              type="button"
-              onClick={() => navigate("/professional")}
-              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
-            >
-              <LayoutDashboard size={19} />
-              Visão geral
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate("/professional/patients")}
-              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
-            >
-              <Users size={19} />
-              Pacientes
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate("/professional/reports")}
-              className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950"
-            >
-              <ClipboardList size={19} />
-              Relatórios
-            </button>
-
-            <button className="flex w-full items-center gap-3 rounded-2xl bg-neutral-950 px-4 py-3 text-left text-sm font-medium text-white">
-              <Bot size={19} />
-              Insights de IA
-            </button>
-          </div>
-
-          <div className="my-6 border-t border-neutral-200" />
-
-          <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950">
-            <Settings size={19} />
-            Configurações
-          </button>
-        </nav>
-
-        <div className="border-t border-neutral-200 p-4">
-          <button className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950">
-            <LogOut size={19} />
-            Sair
-          </button>
-        </div>
-      </aside>
-
-      <main className="lg:ml-64">
-        <header className="flex h-20 items-center justify-between border-b border-neutral-200 bg-white px-6 lg:px-10">
+        <div className="relative grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
           <div>
-            <p className="text-sm text-neutral-500">NutriWarrior Professional</p>
-            <h1 className="text-xl font-semibold tracking-tight">Insights de IA</h1>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <NotificationBell />
-
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-semibold">
-                {user?.nome ?? "Nutricionista"}
-              </p>
-              <p className="text-xs text-neutral-500">Plano Professional</p>
-            </div>
-
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-950 text-sm font-semibold text-white">
-              {getInitials(user?.nome)}
-            </div>
-          </div>
-        </header>
-
-        <div className="mx-auto max-w-[1500px] px-6 py-8 lg:px-10">
-          <section>
-            <p className="text-sm font-medium text-[var(--nw-green)]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-300">
+              <Sparkles size={13} />
               Inteligência clínica e operacional
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-              Insights NutriWarrior
+            </span>
+
+            <h2 className="mt-5 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
+              O NutriWarrior transforma registros em prioridades claras.
             </h2>
-            <p className="mt-2 max-w-3xl text-neutral-500">
-              Uma área separada para padrões, prioridades e sinais relevantes da
-              carteira. Os indicadores abaixo usam somente dados já registrados
-              no sistema.
+
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-neutral-400 sm:text-base">
+              Esta área concentra sinais, padrões e acompanhamento da carteira.
+              Tudo deve partir de dados reais antes de qualquer interpretação assistida.
             </p>
-          </section>
+          </div>
 
-          {error && (
-            <p role="alert" className="mt-6 rounded-2xl bg-red-50 p-4 text-sm text-red-700">
-              {error}
+          <div className="rounded-[26px] border border-white/10 bg-white/5 p-5 backdrop-blur">
+            <div className="flex items-center gap-3">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-400/10 text-emerald-300">
+                <Bot size={21} />
+              </span>
+              <div>
+                <p className="text-sm font-semibold">Camada de IA</p>
+                <p className="mt-1 text-xs text-neutral-400">
+                  Evolução progressiva, sem métricas fictícias
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10">
+              <div className="h-full w-2/5 rounded-full bg-emerald-400" />
+            </div>
+            <p className="mt-2 text-[11px] text-neutral-500">
+              Base operacional disponível; análises clínicas avançadas entram por etapas.
             </p>
-          )}
+          </div>
+        </div>
+      </section>
 
-          <DashboardInsights
-            patientCount={patientCount}
-            loadingPatients={loadingPatients}
-          />
+      {error && (
+        <p
+          role="alert"
+          className="mt-6 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm text-red-700"
+        >
+          {error}
+        </p>
+      )}
 
-          <section className="mt-6 grid gap-4 md:grid-cols-3">
-            {[
-              {
-                title: "Hidratação",
-                text: "Aqui entraremos com padrões de meta e frequência quando a análise dos registros estiver integrada.",
-              },
-              {
-                title: "Peso e evolução",
-                text: "Variações relevantes poderão ser destacadas por paciente e período sem inventar interpretações clínicas.",
-              },
-              {
-                title: "Adesão alimentar",
-                text: "O painel poderá cruzar refeições registradas, plano alimentar e recorrência de acompanhamento.",
-              },
-            ].map(item => (
+      <DashboardInsights
+        patientCount={patientCount}
+        loadingPatients={loadingPatients}
+      />
+
+      <section className="mt-6">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+              Próximas camadas
+            </p>
+            <h3 className="mt-1 text-xl font-semibold tracking-tight">
+              Onde a inteligência vai crescer
+            </h3>
+          </div>
+
+          <span className="rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-500 shadow-sm">
+            roadmap visual
+          </span>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {futureInsights.map(item => {
+            const Icon = item.icon
+
+            return (
               <article
                 key={item.title}
-                className="rounded-[24px] border border-neutral-200 bg-white p-5 shadow-sm"
+                className="group rounded-[26px] border border-neutral-200/80 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition duration-200 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_18px_40px_rgba(15,118,110,0.08)]"
               >
-                <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                  Próxima etapa
+                <span
+                  className={`grid h-11 w-11 place-items-center rounded-2xl ring-1 ring-inset ${item.accent}`}
+                >
+                  <Icon size={20} />
                 </span>
-                <h3 className="mt-4 font-semibold">{item.title}</h3>
+
+                <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                  Próxima etapa
+                </p>
+                <h4 className="mt-1 text-lg font-semibold">{item.title}</h4>
                 <p className="mt-2 text-sm leading-6 text-neutral-500">
                   {item.text}
                 </p>
+
+                <div className="mt-5 h-1 overflow-hidden rounded-full bg-neutral-100">
+                  <div className="h-full w-1/3 rounded-full bg-emerald-300 transition-all duration-300 group-hover:w-2/5" />
+                </div>
               </article>
-            ))}
-          </section>
+            )
+          })}
         </div>
-      </main>
-    </div>
+      </section>
+    </ProfessionalLayout>
   )
 }
