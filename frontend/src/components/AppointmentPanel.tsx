@@ -90,24 +90,24 @@ export function AppointmentPanel({ clienteId }: { clienteId: number }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Agenda</p>
       <h3 className="mt-2 font-semibold">Consultas agendadas</h3>
 
-      <form onSubmit={create} className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
+      <form onSubmit={create} className="mt-4 grid min-w-0 gap-3 sm:grid-cols-2">
         <input
           type="datetime-local"
           required
           value={startsAt}
           onChange={event => setStartsAt(event.target.value)}
-          className="rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+          className="min-w-0 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
         />
         <input
           value={notes}
           onChange={event => setNotes(event.target.value)}
           maxLength={4000}
           placeholder="Observação opcional"
-          className="rounded-xl border border-neutral-200 px-3 py-2 text-sm"
+          className="min-w-0 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
         />
         <button
           disabled={busy}
-          className="rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="rounded-xl bg-teal-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:col-span-2 sm:justify-self-start"
         >
           Agendar
         </button>
